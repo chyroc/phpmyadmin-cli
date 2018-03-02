@@ -2,18 +2,20 @@ package main
 
 import (
 	"fmt"
+	"flag"
+	"strings"
 
 	"github.com/c-bata/go-prompt"
 	"github.com/xwb1989/sqlparser"
-	"flag"
+
 	"github.com/Chyroc/phpmyadmin-cli/internal"
-	"strings"
 )
 
 var currentDB string
 
 func execSQL(sql string) {
 	sql = strings.TrimRight(sql, ";")
+	sqlUpper := strings.ToUpper(sql)
 
 	stmt, err := sqlparser.Parse(sql)
 	if err != nil {
@@ -33,12 +35,10 @@ func execSQL(sql string) {
 			fmt.Printf("err: %v\n", err)
 		}
 
-		if sql == "show databases" {
-			internal.FormatList("Databases", internal.ToList(selection))
-		} else if sql == "show tables"{
-			internal.FormatList("Table", internal.ToList(selection))
+		if sqlUpper == "SHOW DATABASES" || sqlUpper == "SHOW TABLES" {
+			l := internal.ToList(selection)
+			internal.FormatList(l[0], l[1:])
 		}
-
 	}
 }
 
@@ -47,15 +47,11 @@ func executor(in string) {
 }
 
 func completer(in prompt.Document) []prompt.Suggest {
-	s := []prompt.Suggest{
-		{Text: "use"},
-		{Text: "insert"},
-		{Text: "delete"},
-		{Text: "select"},
-		{Text: "update"},
-		{Text: "databases"},
+	var suggest []prompt.Suggest
+	for _, v := range internal.MySQLKeywords {
+		suggest = append(suggest, prompt.Suggest{Text: v})
 	}
-	return prompt.FilterHasPrefix(s, in.GetWordBeforeCursor(), true)
+	return prompt.FilterHasPrefix(suggest, in.GetWordBeforeCursor(), true)
 }
 
 var url string
