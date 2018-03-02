@@ -32,6 +32,14 @@
   name = "github.com/xwb1989/sqlparser"
   branch = "master"
 
+[[constraint]]
+  name = "github.com/PuerkitoBio/goquery"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/olekukonko/tablewriter"
+  branch = "master"
+
 [prune]
   go-tests = true
   unused-packages = true

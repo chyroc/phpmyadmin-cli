@@ -2,6 +2,18 @@
 
 
 [[projects]]
+  name = "github.com/PuerkitoBio/goquery"
+  packages = ["."]
+  revision = "09540e565986583836b5fc792fe951ec5fd201dd"
+  version = "v1.3.0"
+
+[[projects]]
+  name = "github.com/andybalholm/cascadia"
+  packages = ["."]
+  revision = "901648c87902174f774fac311d7f176f8647bdaa"
+  version = "v1.0.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/c-bata/go-prompt"
   packages = ["."]
@@ -20,10 +32,22 @@
   version = "v0.0.3"
 
 [[projects]]
+  name = "github.com/mattn/go-runewidth"
+  packages = ["."]
+  revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
+  version = "v0.0.2"
+
+[[projects]]
   branch = "master"
   name = "github.com/mattn/go-tty"
   packages = ["."]
   revision = "931426f7535ac39720c8909d70ece5a41a2502a6"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/olekukonko/tablewriter"
+  packages = ["."]
+  revision = "b8a9be070da40449e501c3c4730a889e42d87a9e"
 
 [[projects]]
   branch = "master"
@@ -45,6 +69,15 @@
 
 [[projects]]
   branch = "master"
+  name = "golang.org/x/net"
+  packages = [
+    "html",
+    "html/atom"
+  ]
+  revision = "22ae77b79946ea320088417e4d50825671d82d57"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
   revision = "dd2ff4accc098aceecb86b36eaa7829b2a17b1c9"
@@ -52,6 +85,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "39ff02f90ded9251d99e23388cfb67274d15829b315a1698bf9a7acc276b3934"
+  inputs-digest = "a2331cf6c99b39eb68ec9f6d6c52fd366f97639f3b1f0143e2a40b5d0dbcb499"
   solver-name = "gps-cdcl"
   solver-version = 1
