@@ -1,8 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"flag"
+	"fmt"
+	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/c-bata/go-prompt"
@@ -12,9 +14,24 @@ import (
 )
 
 var currentDB string
+var url string
+var historyPath string
+var history []string
+
+func addHistory(word string) {
+	f, err := os.OpenFile(historyPath, os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		return
+	}
+
+	defer f.Close()
+	f.WriteString("\n" + word)
+}
 
 func execSQL(sql string) {
 	sql = strings.TrimRight(sql, ";")
+	addHistory(sql)
+
 	sqlUpper := strings.ToUpper(sql)
 
 	stmt, err := sqlparser.Parse(sql)
@@ -23,7 +40,7 @@ func execSQL(sql string) {
 		return
 	}
 
-	switch  stmt.(type) {
+	switch stmt.(type) {
 
 	case *sqlparser.Use:
 		dbs := strings.Split(sql, " ")
@@ -38,6 +55,11 @@ func execSQL(sql string) {
 		if sqlUpper == "SHOW DATABASES" || sqlUpper == "SHOW TABLES" {
 			l := internal.ToList(selection)
 			internal.FormatList(l[0], l[1:])
+		}
+
+		switch stmt.(type) {
+		case *sqlparser.Select:
+			fmt.Printf("select: %s\n", selection.Text())
 		}
 	}
 }
@@ -54,13 +76,19 @@ func completer(in prompt.Document) []prompt.Suggest {
 	return prompt.FilterHasPrefix(suggest, in.GetWordBeforeCursor(), true)
 }
 
-var url string
-
 func initConfig() {
 	u := flag.String("url", "", "phpmyadmin url")
+	hPath := flag.String("h", ".phpmyadmin_cli_history", "phpmyadmin url")
 	flag.Parse()
 
 	url = *u
+	historyPath = *hPath
+
+	body, err := ioutil.ReadFile(historyPath)
+	if err != nil {
+		panic(err)
+	}
+	history = strings.Split(string(body), "\n")
 }
 
 func main() {
@@ -71,6 +99,7 @@ func main() {
 		completer,
 		prompt.OptionPrefix(">>> "),
 		prompt.OptionTitle("phpmyadmin cli"),
+		prompt.OptionHistory(history),
 	)
 	p.Run()
 }

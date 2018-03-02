@@ -3,8 +3,8 @@ package internal
 import (
 	"strings"
 
-	"github.com/PuerkitoBio/goquery"
 	"fmt"
+	"github.com/PuerkitoBio/goquery"
 )
 
 func filterEmpty(vs []string) []string {

@@ -15,3 +15,4 @@
 .idea/
 *.html
 vendor/
+.phpmyadmin_cli_history
