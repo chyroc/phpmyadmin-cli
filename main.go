@@ -40,28 +40,44 @@ func execSQL(sql string) {
 		return
 	}
 
+	selection, err := internal.Request(url, currentDB, sql)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+	}
+
 	switch stmt.(type) {
 
+	case *sqlparser.Show:
+		if sqlUpper == "SHOW TABLES" && currentDB == "" {
+			fmt.Printf(`(1046, u'No database selected')` + "\n")
+			return
+		}
+
+		l := internal.ToList(selection)
+		internal.FormatList(l[0], l[1:])
+		return
 	case *sqlparser.Use:
 		dbs := strings.Split(sql, " ")
-		currentDB = dbs[len(dbs)-1]
+		db := dbs[len(dbs)-1]
+		if selection == nil {
+			fmt.Printf(`(1049, u"Unknown database '%s'")`+"\n", db)
+			return
+		}
+
+		currentDB = db
+
+		LivePrefixState.LivePrefix = db + " >>> "
+		LivePrefixState.IsEnable = true
+
 		fmt.Printf("Database changed: %s.\n", currentDB)
 	default:
-		selection, err := internal.Request(url, currentDB, sql)
-		if err != nil {
-			fmt.Printf("err: %v\n", err)
-		}
-
-		if sqlUpper == "SHOW DATABASES" || sqlUpper == "SHOW TABLES" {
-			l := internal.ToList(selection)
-			internal.FormatList(l[0], l[1:])
-		}
-
-		switch stmt.(type) {
-		case *sqlparser.Select:
-			fmt.Printf("select: %s\n", selection.Text())
-		}
+		fmt.Printf("select: %s\n", selection.Text())
 	}
+}
+
+var LivePrefixState struct {
+	LivePrefix string
+	IsEnable   bool
 }
 
 func executor(in string) {
@@ -100,6 +116,9 @@ func main() {
 		prompt.OptionPrefix(">>> "),
 		prompt.OptionTitle("phpmyadmin cli"),
 		prompt.OptionHistory(history),
+		prompt.OptionLivePrefix(func() (prefix string, useLivePrefix bool) {
+			return LivePrefixState.LivePrefix, LivePrefixState.IsEnable
+		}),
 	)
 	p.Run()
 }
