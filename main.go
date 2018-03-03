@@ -29,13 +29,9 @@ func addHistory(word string) {
 }
 
 func execSQL(sql string) {
-	sql = strings.TrimRight(sql, ";")
-
-	sqlUpper := strings.ToUpper(sql)
-
 	stmt, err := sqlparser.Parse(sql)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
+		fmt.Printf("syntax error: %s\n", sql)
 		return
 	}
 
@@ -45,10 +41,9 @@ func execSQL(sql string) {
 	}
 
 	switch stmt.(type) {
-
 	case *sqlparser.Show:
-		if sqlUpper == "SHOW TABLES" && currentDB == "" {
-			fmt.Printf(`(1046, u'No database selected')` + "\n")
+		if strings.ToUpper(sql) == "SHOW TABLES" && currentDB == "" {
+			fmt.Printf(`(1046, 'No database selected')` + "\n")
 			return
 		}
 
@@ -64,20 +59,23 @@ func execSQL(sql string) {
 		}
 
 		currentDB = db
-
 		LivePrefixState.LivePrefix = db + " >>> "
 		LivePrefixState.IsEnable = true
 
 		fmt.Printf("Database changed: %s.\n", currentDB)
-	case *sqlparser.Select:
-		fields, values := internal.ToSelectData(selection)
-		internal.Format(fields, values...)
+		return
 	default:
-		fields, values := internal.ToSelectData(selection)
-		internal.Format(fields, values...)
-		//a, _ := selection.Html()
-		//fmt.Printf("select: %s\n", a)
-		//fmt.Printf("select: %s\n", selection.Text())
+		if currentDB == "" {
+			fmt.Printf("(1046, u'No database selected')\n")
+			return
+		}
+
+		html, _ := selection.Html()
+		skipLine := -1
+		if strings.HasPrefix(strings.ToUpper(sql), "SELECT ") {
+			skipLine = 3
+		}
+		internal.ParseFromHTML(fmt.Sprintf("<table>%s</table>", html), skipLine)
 	}
 }
 
@@ -90,7 +88,9 @@ func executor(in string) {
 	addHistory(in)
 	sqls := strings.Split(in, ";")
 	for _, s := range sqls {
-		execSQL(s)
+		if s != "" {
+			execSQL(s)
+		}
 	}
 }
 

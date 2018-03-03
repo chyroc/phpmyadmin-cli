@@ -1,9 +1,9 @@
 package internal
 
 import (
+	"fmt"
 	"strings"
 
-	"fmt"
 	"github.com/PuerkitoBio/goquery"
 )
 
@@ -25,41 +25,41 @@ func ToList(selecttion *goquery.Selection) []string {
 }
 
 func ToSelectData(body *goquery.Selection) ([]string, [][]string) {
-	var fields [][]string
 	var nFields []string
 	body.Find("th").Each(func(i int, selection *goquery.Selection) {
 		if selection != nil {
-			//field := strings.Split(selection.Text(), "\n")
-			//fmt.Printf("", field)
-			//fields = append(fields, field)
-			//nFields = append(nFields, field[0])
 			if t := selection.Text(); t != "" {
 				nFields = append(nFields, t)
 			}
 		}
 	})
 
-	fmt.Printf("", fields)
-	fmt.Printf("", nFields)
-
 	var values [][]string
-	body.Find("tr").Each(func(i int, selection *goquery.Selection) {
+	body.Find("tr").Each(func(i int, tr *goquery.Selection) {
+		var tds []string
+		tr.Find("td").Each(func(i int, td *goquery.Selection) {
+			tds = append(tds, td.Text())
+		})
+		if len(tds) != 0 {
+			values = append(values, tds)
+		}
+	})
+
+	var value []string
+	body.Find("td").Each(func(i int, selection *goquery.Selection) {
 		if selection != nil {
-			var value []string
-			body.Find("td").Each(func(i int, selection *goquery.Selection) {
-				if selection != nil {
-					value = append(value, selection.Text())
-				}
-			})
-			values = append(values, value)
+			value = append(value, selection.Text())
 		}
 	})
 
 	var nValues [][]string
 	for _, v := range values {
+		if len(v)-len(nFields) >= len(v) {
+			continue
+		}
+		fmt.Printf("%d %s", len(v), v)
 		nValues = append(nValues, v[len(v)-len(nFields):])
 	}
-	//fmt.Printf("", nValues)
 
 	return nFields, nValues
 }

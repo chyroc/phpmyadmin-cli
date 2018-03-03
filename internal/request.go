@@ -39,7 +39,7 @@ func Request(uri, db, sql string) (*goquery.Selection, error) {
 	if err != nil {
 		return nil, err
 	} else if !r.Success {
-		return nil, fmt.Errorf("not succee")
+		return nil, fmt.Errorf("not success")
 	}
 
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(r.Message))
