@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
@@ -23,14 +22,12 @@ func parseFromHTML(html string, skipLine int) ([]string, [][]string, error) {
 			thText := th.Text()
 			if thText != "" {
 				header = append(header, thText)
-				fmt.Printf("th %s\n", thText)
 			}
 		})
 		tr.Find("td").Each(func(i int, td *goquery.Selection) {
 			if i <= skipLine {
 				return
 			}
-			fmt.Printf("td %s\n", td.Text())
 			data = append(data, td.Text())
 		})
 		if len(data) != 0 && (len(header) == 0 || (len(header) > 0 && len(header) == len(data))) {

@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -19,9 +18,7 @@ func filterEmpty(vs []string) []string {
 }
 func ToList(selecttion *goquery.Selection) []string {
 	s := strings.TrimSpace(selecttion.Text())
-	a := filterEmpty(strings.Split(s, "\n"))
-	fmt.Printf("%d %v\n", len(a), a)
-	return a
+	return filterEmpty(strings.Split(s, "\n"))
 }
 
 func ToSelectData(body *goquery.Selection) ([]string, [][]string) {
@@ -57,7 +54,6 @@ func ToSelectData(body *goquery.Selection) ([]string, [][]string) {
 		if len(v)-len(nFields) >= len(v) {
 			continue
 		}
-		fmt.Printf("%d %s", len(v), v)
 		nValues = append(nValues, v[len(v)-len(nFields):])
 	}
 

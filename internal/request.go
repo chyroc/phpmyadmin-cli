@@ -18,7 +18,7 @@ func Request(uri, db, sql string) (*goquery.Selection, error) {
 		url = fmt.Sprintf("http://%s/import.php?db=%s&sql_query=%s&show_query=1&server=3&ajax_request=true", uri, db, sql)
 	}
 
-	fmt.Printf("url: %s\n", url)
+	//fmt.Printf("url: %s\n", url)
 
 	resp, err := http.Get(url)
 	if err != nil {
