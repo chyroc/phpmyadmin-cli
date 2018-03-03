@@ -30,7 +30,6 @@ func addHistory(word string) {
 
 func execSQL(sql string) {
 	sql = strings.TrimRight(sql, ";")
-	addHistory(sql)
 
 	sqlUpper := strings.ToUpper(sql)
 
@@ -70,8 +69,15 @@ func execSQL(sql string) {
 		LivePrefixState.IsEnable = true
 
 		fmt.Printf("Database changed: %s.\n", currentDB)
+	case *sqlparser.Select:
+		fields, values := internal.ToSelectData(selection)
+		internal.Format(fields, values...)
 	default:
-		fmt.Printf("select: %s\n", selection.Text())
+		fields, values := internal.ToSelectData(selection)
+		internal.Format(fields, values...)
+		//a, _ := selection.Html()
+		//fmt.Printf("select: %s\n", a)
+		//fmt.Printf("select: %s\n", selection.Text())
 	}
 }
 
@@ -81,7 +87,11 @@ var LivePrefixState struct {
 }
 
 func executor(in string) {
-	execSQL(in)
+	addHistory(in)
+	sqls := strings.Split(in, ";")
+	for _, s := range sqls {
+		execSQL(s)
+	}
 }
 
 func completer(in prompt.Document) []prompt.Suggest {
