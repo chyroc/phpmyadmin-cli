@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/user"
 	"strings"
 
 	"github.com/c-bata/go-prompt"
@@ -12,6 +13,14 @@ import (
 
 	"github.com/Chyroc/phpmyadmin-cli/internal"
 )
+
+func getHomeDir() string {
+	usr, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+	return usr.HomeDir
+}
 
 var currentDB string
 var url string
@@ -104,8 +113,12 @@ func completer(in prompt.Document) []prompt.Suggest {
 
 func initConfig() {
 	u := flag.String("url", "", "phpmyadmin url")
-	hPath := flag.String("h", ".phpmyadmin_cli_history", "phpmyadmin url")
+	hPath := flag.String("h", getHomeDir()+"/.phpmyadmin_cli_history", "phpmyadmin url")
 	flag.Parse()
+
+	if len(flag.Args()) > 0 {
+		execSQL("use " + flag.Args()[0])
+	}
 
 	url = *u
 	historyPath = *hPath
