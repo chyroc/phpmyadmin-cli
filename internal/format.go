@@ -8,7 +8,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
-func parseFromHTML(html string, skipLine int) ([]string, [][]string, error) {
+func parseFromHTML(html string) ([]string, [][]string, error) {
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 	if err != nil {
 		return nil, nil, err
@@ -16,7 +16,12 @@ func parseFromHTML(html string, skipLine int) ([]string, [][]string, error) {
 
 	var header []string
 	var datas [][]string
+	var skipLine = -1
 	doc.Find("tr").Each(func(_ int, tr *goquery.Selection) {
+		if skipLine == -1 && strings.Contains(tr.Find("td").Text(), "Edit Copy") {
+			skipLine = 3
+		}
+
 		var data []string
 		tr.Find("th").Each(func(_ int, th *goquery.Selection) {
 			thText := th.Text()
@@ -24,12 +29,14 @@ func parseFromHTML(html string, skipLine int) ([]string, [][]string, error) {
 				header = append(header, thText)
 			}
 		})
+
 		tr.Find("td").Each(func(i int, td *goquery.Selection) {
 			if i <= skipLine {
 				return
 			}
 			data = append(data, td.Text())
 		})
+
 		if len(data) != 0 && (len(header) == 0 || (len(header) > 0 && len(header) == len(data))) {
 			datas = append(datas, data)
 		}
@@ -57,8 +64,8 @@ func FormatList(title string, values []string) {
 }
 
 // FromHTML Parse table from HTML
-func ParseFromHTML(html string, skipLine int) error {
-	header, datas, err := parseFromHTML(html, skipLine)
+func ParseFromHTML(html string) error {
+	header, datas, err := parseFromHTML(html)
 	if err != nil {
 		return err
 	}

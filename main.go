@@ -80,11 +80,7 @@ func execSQL(sql string) {
 		}
 
 		html, _ := selection.Html()
-		skipLine := -1
-		if strings.HasPrefix(strings.ToUpper(sql), "SELECT ") {
-			skipLine = 3
-		}
-		internal.ParseFromHTML(fmt.Sprintf("<table>%s</table>", html), skipLine)
+		internal.ParseFromHTML(fmt.Sprintf("<table>%s</table>", html))
 	}
 }
 
