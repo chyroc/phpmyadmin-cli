@@ -40,6 +40,10 @@
   name = "github.com/olekukonko/tablewriter"
   branch = "master"
 
+[[constraint]]
+  name = "github.com/fatih/color"
+  branch = "master"
+
 [prune]
   go-tests = true
   unused-packages = true

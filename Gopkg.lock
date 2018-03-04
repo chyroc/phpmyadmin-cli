@@ -20,6 +20,12 @@
   revision = "f329ebd2409de559ba256325b8a18b13a145b5d5"
 
 [[projects]]
+  name = "github.com/fatih/color"
+  packages = ["."]
+  revision = "507f6050b8568533fb3f5504de8e5205fa62a114"
+  version = "v1.6.0"
+
+[[projects]]
   name = "github.com/mattn/go-colorable"
   packages = ["."]
   revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
@@ -85,6 +91,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a2331cf6c99b39eb68ec9f6d6c52fd366f97639f3b1f0143e2a40b5d0dbcb499"
+  inputs-digest = "9f3055c04ba202920d957c804347ea3e244fa23ed033f9a1a876a81fb3980d74"
   solver-name = "gps-cdcl"
   solver-version = 1

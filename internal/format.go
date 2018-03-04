@@ -6,6 +6,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/olekukonko/tablewriter"
+	"github.com/fatih/color"
 )
 
 func parseFromHTML(html string) ([]string, [][]string, error) {
@@ -78,4 +79,16 @@ func ParseFromHTML(html string) error {
 	t.Render()
 
 	return nil
+}
+
+func Info(fotmat string, a ...interface{}) {
+	color.Green(fotmat, a)
+}
+
+func Warn(fotmat string, a ...interface{}) {
+	color.Red(fotmat, a)
+}
+
+func Error(err error) {
+	color.Red("%s\n", err)
 }

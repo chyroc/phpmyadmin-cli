@@ -40,13 +40,13 @@ func addHistory(word string) {
 func execSQL(sql string) {
 	stmt, err := sqlparser.Parse(sql)
 	if err != nil {
-		fmt.Printf("syntax error: %s\n", sql)
+		internal.Warn("syntax error: %s\n", sql)
 		return
 	}
 
 	selection, err := internal.Request(url, currentDB, sql)
 	if err != nil {
-		fmt.Printf("%s\n", err)
+		internal.Error(err)
 		return
 	}
 
@@ -55,7 +55,7 @@ func execSQL(sql string) {
 		dbs := strings.Split(sql, " ")
 		db := dbs[len(dbs)-1]
 		if selection == nil {
-			fmt.Printf(`(1049, u"Unknown database '%s'")`+"\n", db)
+			internal.Warn(`(1049, u"Unknown database '%s'")`+"\n", db)
 			return
 		}
 
@@ -63,11 +63,11 @@ func execSQL(sql string) {
 		LivePrefixState.LivePrefix = db + " >>> "
 		LivePrefixState.IsEnable = true
 
-		fmt.Printf("Database changed: %s.\n", currentDB)
+		internal.Info("Database changed: %s.\n", currentDB)
 		return
 	default:
 		if strings.ToUpper(sql) != "SHOW DATABASES" && currentDB == "" {
-			fmt.Printf("(1046, u'No database selected')\n")
+			internal.Warn("(1046, u'No database selected')\n")
 			return
 		}
 
