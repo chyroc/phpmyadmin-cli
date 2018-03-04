@@ -16,22 +16,39 @@ func parseFromHTML(html string) ([]string, [][]string, error) {
 
 	var header []string
 	var datas [][]string
-	var skipLine = -1
-	doc.Find("tr").Each(func(_ int, tr *goquery.Selection) {
-		if skipLine == -1 && strings.Contains(tr.Find("td").Text(), "Edit Copy") {
-			skipLine = 3
+	var columnLine = -1
+	var rowLine = -1
+
+	// header
+	doc.Find("tr").Each(func(j int, tr *goquery.Selection) {
+		if columnLine == -1 {
+			if strings.Contains(tr.Find("td").Text(), "Edit Copy") {
+				columnLine = 3
+			}
+		}
+		if rowLine == -1 {
+			if len(header) == 1 && (header[0] == "Database" || strings.HasPrefix(header[0], "Tables_in_")) {
+				rowLine = 0
+			}
 		}
 
-		var data []string
 		tr.Find("th").Each(func(_ int, th *goquery.Selection) {
 			thText := th.Text()
 			if thText != "" {
-				header = append(header, thText)
+				header = append(header, strings.TrimSpace(thText))
 			}
 		})
+	})
 
+	// datas
+	doc.Find("tr").Each(func(j int, tr *goquery.Selection) {
+		if j <= rowLine {
+			return
+		}
+
+		var data []string
 		tr.Find("td").Each(func(i int, td *goquery.Selection) {
-			if i <= skipLine {
+			if i <= columnLine {
 				return
 			}
 			data = append(data, td.Text())
@@ -43,24 +60,6 @@ func parseFromHTML(html string) ([]string, [][]string, error) {
 	})
 
 	return header, datas, nil
-}
-
-func Format(name []string, values ...[]string) {
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader(name)
-
-	for _, v := range values {
-		table.Append(v)
-	}
-	table.Render()
-}
-
-func FormatList(title string, values []string) {
-	var vs [][]string
-	for _, v := range values {
-		vs = append(vs, []string{v})
-	}
-	Format([]string{title}, vs...)
 }
 
 // FromHTML Parse table from HTML

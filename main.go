@@ -46,19 +46,11 @@ func execSQL(sql string) {
 
 	selection, err := internal.Request(url, currentDB, sql)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
+		fmt.Printf("%s\n", err)
+		return
 	}
 
 	switch stmt.(type) {
-	case *sqlparser.Show:
-		if strings.ToUpper(sql) == "SHOW TABLES" && currentDB == "" {
-			fmt.Printf(`(1046, 'No database selected')` + "\n")
-			return
-		}
-
-		l := internal.ToList(selection)
-		internal.FormatList(l[0], l[1:])
-		return
 	case *sqlparser.Use:
 		dbs := strings.Split(sql, " ")
 		db := dbs[len(dbs)-1]
@@ -74,7 +66,7 @@ func execSQL(sql string) {
 		fmt.Printf("Database changed: %s.\n", currentDB)
 		return
 	default:
-		if currentDB == "" {
+		if strings.ToUpper(sql) != "SHOW DATABASES" && currentDB == "" {
 			fmt.Printf("(1046, u'No database selected')\n")
 			return
 		}

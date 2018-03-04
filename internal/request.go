@@ -34,12 +34,24 @@ func Request(uri, db, sql string) (*goquery.Selection, error) {
 	var r struct {
 		Message string
 		Success bool
+		Error   string
 	}
 	err = json.Unmarshal(b, &r)
 	if err != nil {
 		return nil, err
 	} else if !r.Success {
-		return nil, fmt.Errorf("not success")
+		errdoc, err := goquery.NewDocumentFromReader(strings.NewReader(r.Error))
+		if err != nil {
+			return nil, err
+		}
+
+		var errMessage string
+		errdoc.Find("code").Each(func(_ int, code *goquery.Selection) {
+			if code.Text() != "" {
+				errMessage = code.Text()
+			}
+		})
+		return nil, fmt.Errorf(errMessage)
 	}
 
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(r.Message))
