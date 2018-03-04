@@ -26,6 +26,8 @@ var currentDB string
 var url string
 var historyPath string
 var history []string
+var help bool
+var prune bool
 
 func addHistory(word string) {
 	f, err := os.OpenFile(historyPath, os.O_APPEND|os.O_WRONLY, 0600)
@@ -101,9 +103,13 @@ func completer(in prompt.Document) []prompt.Suggest {
 
 func initConfig() {
 	u := flag.String("url", "", "phpmyadmin url")
-	hPath := flag.String("h", getHomeDir()+"/.phpmyadmin_cli_history", "phpmyadmin url")
+	hPath := flag.String("history", getHomeDir()+"/.phpmyadmin_cli_history", "phpmyadmin url")
+	h := flag.Bool("h", false, "show help")
+	p := flag.Bool("prune", false, "清理命令记录")
 	flag.Parse()
 
+	help = *h
+	prune = *p
 	if len(flag.Args()) > 0 {
 		execSQL("use " + flag.Args()[0])
 	}
@@ -118,8 +124,58 @@ func initConfig() {
 	history = strings.Split(string(body), "\n")
 }
 
+func reverseStrings(input []string) []string {
+	if len(input) == 0 {
+		return input
+	}
+	return append(reverseStrings(input[1:]), input[0])
+}
+
+func shortHistory() error {
+	body, err := ioutil.ReadFile(historyPath)
+	if err != nil {
+		return err
+	}
+
+	lines := reverseStrings(strings.Split(string(body), "\n"))
+
+	var newLines []string
+	var lineSet = make(map[string]bool)
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line != "" && !lineSet[line] {
+			newLines = append(newLines, line)
+			lineSet[line] = true
+		}
+	}
+
+	return ioutil.WriteFile(historyPath, []byte(strings.Join(newLines, "\n")), 0644)
+}
+
 func main() {
 	initConfig()
+
+	if help {
+		fmt.Printf(`NAME:
+   phpmyadmin-cli - access phpmyadmin from shell cli
+
+USAGE:
+   phpmyadmin-cli [global options] [arguments...]
+
+GLOBAL OPTIONS:
+   --url value      phpmyadmin url
+   --prune          清理命令记录
+   --history value  command history file (default: "%s")
+   --help, -h       show help`+ "\n", historyPath)
+		return
+	} else if prune {
+		err := shortHistory()
+		if err != nil {
+			internal.Error(err)
+		}
+		return
+	}
 
 	p := prompt.New(
 		executor,
