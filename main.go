@@ -150,7 +150,7 @@ func shortHistory() error {
 		}
 	}
 
-	return ioutil.WriteFile(historyPath, []byte(strings.Join(newLines, "\n")), 0644)
+	return ioutil.WriteFile(historyPath, []byte(strings.Join(reverseStrings(newLines), "\n")), 0644)
 }
 
 func main() {
