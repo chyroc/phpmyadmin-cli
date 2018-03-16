@@ -1,6 +1,10 @@
 # phpmyadmin-cli
 access phpmyadmin from cli / 通过shell操作phpmyadmin
 
+## features
+* access phpmyadmin from cli
+* grammar tip
+
 ## install
 ```
 go get github.com/Chyroc/phpmyadmin-cli
@@ -8,7 +12,6 @@ go get github.com/Chyroc/phpmyadmin-cli
 
 ## use
 
-### help
 ```
 ➜  ~ phpmyadmin-cli -h
 NAME:
@@ -24,7 +27,6 @@ GLOBAL OPTIONS:
    --help, -h       show help
 ```
 
-### connect to phpadmin
 ```
 ➜  ~ phpmyadmin-cli -url ip:port
 >>>
