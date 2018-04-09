@@ -82,11 +82,11 @@ func ParseFromHTML(html string) error {
 }
 
 func Info(fotmat string, a ...interface{}) {
-	color.Green(fotmat, a)
+	color.Green(fotmat, a...)
 }
 
 func Warn(fotmat string, a ...interface{}) {
-	color.Red(fotmat, a)
+	color.Red(fotmat, a...)
 }
 
 func Error(err error) {

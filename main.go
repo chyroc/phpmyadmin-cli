@@ -28,6 +28,7 @@ var historyPath string
 var history []string
 var help bool
 var prune bool
+var list bool
 
 func addHistory(word string) {
 	f, err := os.OpenFile(historyPath, os.O_APPEND|os.O_WRONLY, 0600)
@@ -102,20 +103,16 @@ func completer(in prompt.Document) []prompt.Suggest {
 }
 
 func initConfig() {
-	u := flag.String("url", "", "phpmyadmin url")
-	hPath := flag.String("history", getHomeDir()+"/.phpmyadmin_cli_history", "phpmyadmin url")
-	h := flag.Bool("h", false, "show help")
-	p := flag.Bool("prune", false, "清理命令记录")
+	flag.StringVar(&url, "url", "", "phpmyadmin url")
+	flag.StringVar(&historyPath, "history", getHomeDir()+"/.phpmyadmin_cli_history", "phpmyadmin url")
+	flag.BoolVar(&help, "h", false, "show help")
+	flag.BoolVar(&prune, "prune", false, "清理命令记录")
+	flag.BoolVar(&list, "list", false, "获取server列表")
 	flag.Parse()
 
-	help = *h
-	prune = *p
 	if len(flag.Args()) > 0 {
 		execSQL("use " + flag.Args()[0])
 	}
-
-	url = *u
-	historyPath = *hPath
 
 	body, err := ioutil.ReadFile(historyPath)
 	if err != nil {
@@ -166,6 +163,8 @@ USAGE:
 GLOBAL OPTIONS:
    --url value      phpmyadmin url
    --prune          清理命令记录
+   --server         选择server
+   --list           获取server列表
    --history value  command history file (default: "%s")
    --help, -h       show help`+ "\n", historyPath)
 		return
@@ -174,6 +173,13 @@ GLOBAL OPTIONS:
 		if err != nil {
 			internal.Error(err)
 		}
+		return
+	} else if list {
+		s, err := internal.GetServerList(url)
+		if err != nil {
+			internal.Error(err)
+		}
+		s.Print()
 		return
 	}
 
