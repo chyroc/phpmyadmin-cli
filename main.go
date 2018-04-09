@@ -7,20 +7,13 @@ import (
 	"os"
 	"os/user"
 	"strings"
+	"errors"
 
 	"github.com/c-bata/go-prompt"
 	"github.com/xwb1989/sqlparser"
 
 	"github.com/Chyroc/phpmyadmin-cli/internal"
 )
-
-func getHomeDir() string {
-	usr, err := user.Current()
-	if err != nil {
-		panic(err)
-	}
-	return usr.HomeDir
-}
 
 var currentDB string
 var url string
@@ -29,6 +22,16 @@ var history []string
 var help bool
 var prune bool
 var list bool
+var server string
+var ErrNotSetServer = errors.New("not set server")
+
+func getHomeDir() string {
+	usr, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+	return usr.HomeDir
+}
 
 func addHistory(word string) {
 	f, err := os.OpenFile(historyPath, os.O_APPEND|os.O_WRONLY, 0600)
@@ -40,7 +43,64 @@ func addHistory(word string) {
 	f.WriteString("\n" + word)
 }
 
+func setServer(sql string) error {
+	sqls := strings.Split(strings.TrimSpace(strings.ToLower(sql)), " ")
+	if len(sqls) == 2 && sqls[0] == "set" {
+		s, err := internal.GetServerList(url)
+		if err != nil {
+			return err
+		}
+
+		for _, v := range s.S {
+			if v.ID == sqls[1] {
+				server = v.ID
+				setPrefix()
+				internal.Info("server[%s] seted", v.ID)
+				return nil
+			}
+		}
+		err = fmt.Errorf("server seted[%s] is invalid", sqls[1])
+		return err
+	}
+
+	if server == "" {
+		err := fmt.Errorf("请选择一个server; 输入`show servers`获取所有server; 输入`set <id>`设置server")
+		return err
+	}
+
+	return ErrNotSetServer
+}
+
+func setPrefix() {
+	promptPrefix := ""
+	if server != "" && currentDB != "" {
+		promptPrefix = "[" + server + "] " + currentDB + " >>> "
+	} else if currentDB == "" {
+		promptPrefix = "[" + server + "]" + " >>> "
+	}
+
+	LivePrefixState.LivePrefix = promptPrefix
+	LivePrefixState.IsEnable = true
+}
+
 func execSQL(sql string) {
+	if strings.ToLower(sql) == "show servers" {
+		s, err := internal.GetServerList(url)
+		if err != nil {
+			internal.Error(err)
+		}
+		s.Print()
+		return
+	}
+
+	err := setServer(sql)
+	if err != ErrNotSetServer {
+		if err != nil {
+			internal.Error(err)
+		}
+		return
+	}
+
 	stmt, err := sqlparser.Parse(sql)
 	if err != nil {
 		internal.Warn("syntax error: %s\n", sql)
@@ -63,8 +123,7 @@ func execSQL(sql string) {
 		}
 
 		currentDB = db
-		LivePrefixState.LivePrefix = db + " >>> "
-		LivePrefixState.IsEnable = true
+		setPrefix()
 
 		internal.Info("Database changed: %s.\n", currentDB)
 		return
@@ -99,6 +158,9 @@ func completer(in prompt.Document) []prompt.Suggest {
 	for _, v := range internal.MySQLKeywords {
 		suggest = append(suggest, prompt.Suggest{Text: v})
 	}
+
+	suggest = append(suggest, prompt.Suggest{Text: "servers"})
+
 	return prompt.FilterHasPrefix(suggest, in.GetWordBeforeCursor(), true)
 }
 
@@ -108,10 +170,12 @@ func initConfig() {
 	flag.BoolVar(&help, "h", false, "show help")
 	flag.BoolVar(&prune, "prune", false, "清理命令记录")
 	flag.BoolVar(&list, "list", false, "获取server列表")
+	flag.StringVar(&server, "server", "", "选择server")
 	flag.Parse()
 
 	if len(flag.Args()) > 0 {
-		execSQL("use " + flag.Args()[0])
+		fmt.Printf("", flag.Args())
+		// execSQL("use " + flag.Args()[0])
 	}
 
 	body, err := ioutil.ReadFile(historyPath)
@@ -173,13 +237,6 @@ GLOBAL OPTIONS:
 		if err != nil {
 			internal.Error(err)
 		}
-		return
-	} else if list {
-		s, err := internal.GetServerList(url)
-		if err != nil {
-			internal.Error(err)
-		}
-		s.Print()
 		return
 	}
 
