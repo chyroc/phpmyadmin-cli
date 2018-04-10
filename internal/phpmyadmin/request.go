@@ -1,11 +1,12 @@
 package phpmyadmin
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"regexp"
 	"strings"
-	"encoding/json"
 
 	"github.com/Chyroc/phpmyadmin-cli/internal/requests"
 )
@@ -113,4 +114,44 @@ func (p *phpmyadmin) GetTables(server, database string) error {
 	fmt.Printf("tables %#v\n", tables)
 
 	return nil
+}
+func (p *phpmyadmin) ExecSQL(server, database, table, sql string) {
+	if p.Token == "" {
+		p.initCookie()
+	}
+
+	data := map[string]string{
+		// "table":             table,
+		"db":                database,
+		"server":            server,
+		"token":             p.Token,
+		"prev_sql_query":    "",
+		"sql_query":         sql,
+		"ajax_request":      "true",
+		"ajax_page_request": "true",
+	}
+	var bs []string
+	for k, v := range data {
+		bs = append(bs, k+"="+url.QueryEscape(v))
+	}
+	body := strings.NewReader(strings.Join(bs, "&"))
+	header := map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
+
+	resp, err := p.Post(p.uri+"/import.php", "", nil, header, body)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	var r PhpmyadminResp
+	if err = json.Unmarshal(b, &r); err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%s\n", r.Message)
 }
