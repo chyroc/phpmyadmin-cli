@@ -1,4 +1,4 @@
-package internal
+package common
 
 // SELECT * FROM mysql.help_keyword;
 var MySQLKeywords = []string{"ACCESSIBLE",

@@ -23,6 +23,8 @@ USAGE:
 GLOBAL OPTIONS:
    --url value      phpmyadmin url
    --prune          清理命令记录
+   --server         选择server
+   --list           获取server列表
    --history value  command history file (default: "~/.phpmyadmin_cli_history")
    --help, -h       show help
 ```
@@ -30,4 +32,10 @@ GLOBAL OPTIONS:
 ```
 ➜  ~ phpmyadmin-cli -url ip:port
 >>>
+```
+
+command
+```
+show servers;
+set server_id;
 ```

@@ -1,11 +1,10 @@
-package internal
+package show
 
 import (
 	"os"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
 )
 
@@ -79,16 +78,4 @@ func ParseFromHTML(html string) error {
 	t.Render()
 
 	return nil
-}
-
-func Info(fotmat string, a ...interface{}) {
-	color.Green(fotmat, a...)
-}
-
-func Warn(fotmat string, a ...interface{}) {
-	color.Red(fotmat, a...)
-}
-
-func Error(err error) {
-	color.Red("%s\n", err)
 }

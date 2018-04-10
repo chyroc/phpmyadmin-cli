@@ -12,7 +12,9 @@ import (
 	"github.com/c-bata/go-prompt"
 	"github.com/xwb1989/sqlparser"
 
-	"github.com/Chyroc/phpmyadmin-cli/internal"
+	"github.com/Chyroc/phpmyadmin-cli/internal/common"
+	"github.com/Chyroc/phpmyadmin-cli/internal/phpmyadmin"
+	"github.com/Chyroc/phpmyadmin-cli/internal/show"
 )
 
 var currentDB string
@@ -46,7 +48,7 @@ func addHistory(word string) {
 func setServer(sql string) error {
 	sqls := strings.Split(strings.TrimSpace(strings.ToLower(sql)), " ")
 	if len(sqls) == 2 && sqls[0] == "set" {
-		s, err := internal.GetServerList(url)
+		s, err := phpmyadmin.DefaultPhpmyadmin.GetServerList(url)
 		if err != nil {
 			return err
 		}
@@ -55,7 +57,7 @@ func setServer(sql string) error {
 			if v.ID == sqls[1] {
 				server = v.ID
 				setPrefix()
-				internal.Info("server[%s] seted", v.ID)
+				common.Info("server[%s] seted", v.ID)
 				return nil
 			}
 		}
@@ -85,9 +87,9 @@ func setPrefix() {
 
 func execSQL(sql string) {
 	if strings.ToLower(sql) == "show servers" {
-		s, err := internal.GetServerList(url)
+		s, err := phpmyadmin.DefaultPhpmyadmin.GetServerList(url)
 		if err != nil {
-			internal.Error(err)
+			common.Error(err)
 		}
 		s.Print()
 		return
@@ -96,20 +98,20 @@ func execSQL(sql string) {
 	err := setServer(sql)
 	if err != ErrNotSetServer {
 		if err != nil {
-			internal.Error(err)
+			common.Error(err)
 		}
 		return
 	}
 
 	stmt, err := sqlparser.Parse(sql)
 	if err != nil {
-		internal.Warn("syntax error: %s\n", sql)
+		common.Warn("syntax error: %s %s\n", sql, err)
 		return
 	}
 
-	selection, err := internal.Request(url, currentDB, sql)
+	result, err := phpmyadmin.DefaultPhpmyadmin.ExecSQL(server, currentDB, "", sql)
 	if err != nil {
-		internal.Error(err)
+		common.Error(err)
 		return
 	}
 
@@ -117,24 +119,24 @@ func execSQL(sql string) {
 	case *sqlparser.Use:
 		dbs := strings.Split(sql, " ")
 		db := dbs[len(dbs)-1]
-		if selection == nil {
-			internal.Warn(`(1049, u"Unknown database '%s'")`+"\n", db)
+		if result == nil {
+			common.Warn(`(1049, u"Unknown database '%s'")`+"\n", db)
 			return
 		}
 
 		currentDB = db
 		setPrefix()
 
-		internal.Info("Database changed: %s.\n", currentDB)
+		common.Info("Database changed: %s.\n", currentDB)
 		return
 	default:
 		if strings.ToUpper(sql) != "SHOW DATABASES" && currentDB == "" {
-			internal.Warn("(1046, u'No database selected')\n")
+			common.Warn("(1046, u'No database selected')\n")
 			return
 		}
 
-		html, _ := selection.Html()
-		internal.ParseFromHTML(fmt.Sprintf("<table>%s</table>", html))
+		html := string(result)
+		show.ParseFromHTML(fmt.Sprintf("<table>%s</table>", html))
 	}
 }
 
@@ -155,7 +157,7 @@ func executor(in string) {
 
 func completer(in prompt.Document) []prompt.Suggest {
 	var suggest []prompt.Suggest
-	for _, v := range internal.MySQLKeywords {
+	for _, v := range common.MySQLKeywords {
 		suggest = append(suggest, prompt.Suggest{Text: v})
 	}
 
@@ -172,6 +174,8 @@ func initConfig() {
 	flag.BoolVar(&list, "list", false, "获取server列表")
 	flag.StringVar(&server, "server", "", "选择server")
 	flag.Parse()
+
+	phpmyadmin.DefaultPhpmyadmin.SetURI(url)
 
 	if len(flag.Args()) > 0 {
 		fmt.Printf("", flag.Args())
@@ -235,7 +239,7 @@ GLOBAL OPTIONS:
 	} else if prune {
 		err := shortHistory()
 		if err != nil {
-			internal.Error(err)
+			common.Error(err)
 		}
 		return
 	}

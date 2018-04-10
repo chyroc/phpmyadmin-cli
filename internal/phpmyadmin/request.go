@@ -4,10 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
 
+	"github.com/PuerkitoBio/goquery"
+
+	"github.com/Chyroc/phpmyadmin-cli/internal/common"
 	"github.com/Chyroc/phpmyadmin-cli/internal/requests"
 )
 
@@ -25,6 +29,20 @@ type PhpmyadminResp struct {
 
 var DefaultPhpmyadmin *phpmyadmin
 
+type Server struct {
+	ID   string
+	Name string
+}
+
+type Servers struct {
+	S []Server
+}
+
+func (s *Servers) Print() {
+	for _, v := range s.S {
+		common.Info(fmt.Sprintf("%s: %s\n", v.ID, v.Name))
+	}
+}
 func init() {
 	DefaultPhpmyadmin = &phpmyadmin{
 		Session: requests.DefaultSession,
@@ -59,6 +77,31 @@ func (p *phpmyadmin) initCookie() error {
 	p.Token = matchToken[1]
 
 	return nil
+}
+
+func (p *phpmyadmin) GetServerList(url string) (*Servers, error) {
+	resp, err := http.Get(fmt.Sprintf("http://%s", url))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var s []Server
+	doc.Find("#select_server > option").Each(func(_ int, selection *goquery.Selection) {
+		id := strings.TrimSpace(selection.AttrOr("value", ""))
+		name := strings.TrimSpace(selection.Text())
+
+		if id != "" {
+			s = append(s, Server{id, name})
+		}
+	})
+
+	return &Servers{s}, nil
 }
 
 func (p *phpmyadmin) GetDatabases(server string) error {
@@ -115,7 +158,7 @@ func (p *phpmyadmin) GetTables(server, database string) error {
 
 	return nil
 }
-func (p *phpmyadmin) ExecSQL(server, database, table, sql string) {
+func (p *phpmyadmin) ExecSQL(server, database, table, sql string) ([]byte, error) {
 	if p.Token == "" {
 		p.initCookie()
 	}
@@ -139,19 +182,19 @@ func (p *phpmyadmin) ExecSQL(server, database, table, sql string) {
 
 	resp, err := p.Post(p.uri+"/import.php", "", nil, header, body)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	var r PhpmyadminResp
 	if err = json.Unmarshal(b, &r); err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	fmt.Printf("%s\n", r.Message)
+	return []byte(r.Message), err
 }
