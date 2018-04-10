@@ -23,3 +23,21 @@ func docDatabases(resp *http.Response) ([]string, error) {
 
 	return databases, nil
 }
+
+func docTables(text string) ([]string, error) {
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(text))
+	if err != nil {
+		return nil, err
+	}
+
+	var tables []string
+	doc.Find("tbody > tr").Each(func(i int, selection *goquery.Selection) {
+		d := strings.TrimSpace(selection.Find("tr > th > a").Text())
+		if d != "" {
+			tables = append(tables, d)
+		}
+
+	})
+
+	return tables, nil
+}
