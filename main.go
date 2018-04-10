@@ -1,13 +1,13 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/user"
 	"strings"
-	"errors"
 
 	"github.com/c-bata/go-prompt"
 	"github.com/xwb1989/sqlparser"
@@ -230,7 +230,7 @@ GLOBAL OPTIONS:
    --server         选择server
    --list           获取server列表
    --history value  command history file (default: "%s")
-   --help, -h       show help`+ "\n", historyPath)
+   --help, -h       show help`+"\n", historyPath)
 		return
 	} else if prune {
 		err := shortHistory()

@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/olekukonko/tablewriter"
 	"github.com/fatih/color"
+	"github.com/olekukonko/tablewriter"
 )
 
 func parseFromHTML(html string) ([]string, [][]string, error) {
