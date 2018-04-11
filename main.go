@@ -253,6 +253,18 @@ GLOBAL OPTIONS:
 		prompt.OptionLivePrefix(func() (prefix string, useLivePrefix bool) {
 			return LivePrefixState.LivePrefix, LivePrefixState.IsEnable
 		}),
+		prompt.OptionAddASCIICodeBind(prompt.ASCIICodeBind{
+			ASCIICode: []byte{0x1b, 0x62},
+			Fn:        prompt.GoLeftWord,
+		}),
+		prompt.OptionAddASCIICodeBind(prompt.ASCIICodeBind{
+			ASCIICode: []byte{0x1b, 0x66},
+			Fn:        prompt.GoRightWord,
+		}),
+		prompt.OptionAddASCIICodeBind(prompt.ASCIICodeBind{
+			ASCIICode: []byte{0x1b, 0x08},
+			Fn:        prompt.DeleteWord,
+		}),
 	)
 	p.Run()
 }
