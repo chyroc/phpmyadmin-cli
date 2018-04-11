@@ -72,7 +72,7 @@ func setServer(sql string) (err error) {
 			return fmt.Errorf("请选择一个server; 输入`show servers`获取所有server; 输入`set <id>`设置server")
 		}
 
-		s, err := phpmyadmin.DefaultPhpmyadmin.GetServerList(url)
+		s, err := phpmyadmin.DefaultPHPMyAdmin.GetServerList(url)
 		if err != nil {
 			return err
 		}
@@ -133,7 +133,7 @@ func execSQL(sql string) {
 	sql = strings.TrimSpace(sql)
 
 	if strings.ToLower(sql) == "show servers" {
-		s, err := phpmyadmin.DefaultPhpmyadmin.GetServerList(url)
+		s, err := phpmyadmin.DefaultPHPMyAdmin.GetServerList(url)
 		if err != nil {
 			common.Error(err)
 		}
@@ -151,7 +151,7 @@ func execSQL(sql string) {
 		return
 	}
 
-	result, err := phpmyadmin.DefaultPhpmyadmin.ExecSQL(server, currentDB, "", sql)
+	result, err := phpmyadmin.DefaultPHPMyAdmin.ExecSQL(server, currentDB, "", sql)
 	if err != nil {
 		common.Error(err)
 		return
@@ -220,7 +220,7 @@ func initConfig() {
 	flag.BoolVar(&common.IsDebug1, "v", false, "开启调试信息")
 	flag.Parse()
 
-	phpmyadmin.DefaultPhpmyadmin.SetURI(url)
+	phpmyadmin.DefaultPHPMyAdmin.SetURI(url)
 
 	if len(flag.Args()) > 0 {
 		fmt.Printf("", flag.Args())

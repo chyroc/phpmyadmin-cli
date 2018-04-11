@@ -15,16 +15,16 @@ import (
 	"github.com/Chyroc/phpmyadmin-cli/internal/requests"
 )
 
-var DefaultPhpmyadmin *phpmyadmin
+var DefaultPHPMyAdmin *phpMyAdmin
 var tokenRegexp = regexp.MustCompile("<input type=\"hidden\" name=\"token\" value=\"(.*?)\" >")
 
-type phpmyadmin struct {
+type phpMyAdmin struct {
 	*requests.Session
 	Token string
 	uri   string
 }
 
-type PhpmyadminResp struct {
+type phpMyAdminResp struct {
 	Message string
 	Success bool
 	Error   string
@@ -39,7 +39,7 @@ type Servers struct {
 	S []Server
 }
 
-func handlerPhpmyadminResp(r PhpmyadminResp) ([]byte, error) {
+func handlerPhpmyadminResp(r phpMyAdminResp) ([]byte, error) {
 	if !r.Success {
 		errdoc, err := goquery.NewDocumentFromReader(strings.NewReader(r.Error))
 		if err != nil {
@@ -64,16 +64,16 @@ func (s *Servers) Print() {
 	}
 }
 func init() {
-	DefaultPhpmyadmin = &phpmyadmin{
+	DefaultPHPMyAdmin = &phpMyAdmin{
 		Session: requests.DefaultSession,
 	}
 }
 
-func (p *phpmyadmin) SetURI(uri string) {
+func (p *phpMyAdmin) SetURI(uri string) {
 	p.uri = uri
 }
 
-func (p *phpmyadmin) initCookie() error {
+func (p *phpMyAdmin) initCookie() error {
 	resp, err := requests.DefaultSession.Get(p.uri+"/index.php", "", nil)
 	if err != nil {
 		return err
@@ -97,7 +97,7 @@ func (p *phpmyadmin) initCookie() error {
 	return nil
 }
 
-func (p *phpmyadmin) GetServerList(url string) (*Servers, error) {
+func (p *phpMyAdmin) GetServerList(url string) (*Servers, error) {
 	resp, err := http.Get(fmt.Sprintf("http://%s", url))
 	if err != nil {
 		return nil, err
@@ -122,7 +122,7 @@ func (p *phpmyadmin) GetServerList(url string) (*Servers, error) {
 	return &Servers{s}, nil
 }
 
-func (p *phpmyadmin) GetDatabases(server string) error {
+func (p *phpMyAdmin) GetDatabases(server string) error {
 	if p.Token == "" {
 		p.initCookie()
 	}
@@ -146,7 +146,7 @@ func (p *phpmyadmin) GetDatabases(server string) error {
 	return nil
 }
 
-func (p *phpmyadmin) GetTables(server, database string) error {
+func (p *phpMyAdmin) GetTables(server, database string) error {
 	if p.Token == "" {
 		p.initCookie()
 	}
@@ -162,7 +162,7 @@ func (p *phpmyadmin) GetTables(server, database string) error {
 		return err
 	}
 
-	var r PhpmyadminResp
+	var r phpMyAdminResp
 	if err = json.Unmarshal(b, &r); err != nil {
 		return err
 	}
@@ -181,7 +181,7 @@ func (p *phpmyadmin) GetTables(server, database string) error {
 
 	return nil
 }
-func (p *phpmyadmin) ExecSQL(server, database, table, sql string) ([]byte, error) {
+func (p *phpMyAdmin) ExecSQL(server, database, table, sql string) ([]byte, error) {
 	if p.Token == "" {
 		p.initCookie()
 	}
@@ -215,7 +215,7 @@ func (p *phpmyadmin) ExecSQL(server, database, table, sql string) ([]byte, error
 		return nil, err
 	}
 
-	var r PhpmyadminResp
+	var r phpMyAdminResp
 	if err = json.Unmarshal(b, &r); err != nil {
 		return nil, err
 	}
