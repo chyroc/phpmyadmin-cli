@@ -36,21 +36,49 @@ func getHomeDir() string {
 }
 
 func addHistory(word string) {
-	f, err := os.OpenFile(historyPath, os.O_APPEND|os.O_WRONLY, 0600)
+	f, err := os.OpenFile(historyPath, os.O_APPEND|os.O_RDWR, 0600)
 	if err != nil {
+		common.Error(err)
+		return
+	}
+	defer f.Close()
+
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		common.Error(err)
 		return
 	}
 
-	defer f.Close()
-	f.WriteString("\n" + word)
+	bs := strings.Split(string(b), "\n")
+	if bs[len(bs)-1] != word {
+		_, err := f.WriteString("\n" + word)
+		if err != nil {
+			common.Error(err)
+			return
+		}
+	}
 }
 
-func setServer(sql string) error {
+func setServer(sql string) (err error) {
+	defer func() {
+		if err != nil && err != ErrNotSetServer {
+			common.Error(err)
+		}
+	}()
+
 	sqls := strings.Split(strings.TrimSpace(strings.ToLower(sql)), " ")
 	if len(sqls) == 2 && sqls[0] == "set" {
+		if sqls[1] == "" {
+			return fmt.Errorf("请选择一个server; 输入`show servers`获取所有server; 输入`set <id>`设置server")
+		}
+
 		s, err := phpmyadmin.DefaultPhpmyadmin.GetServerList(url)
 		if err != nil {
 			return err
+		}
+
+		if s.S == nil {
+			return fmt.Errorf("no server found")
 		}
 
 		for _, v := range s.S {
@@ -61,16 +89,32 @@ func setServer(sql string) error {
 				return nil
 			}
 		}
-		err = fmt.Errorf("server seted[%s] is invalid", sqls[1])
-		return err
+		return fmt.Errorf("server seted[%s] is invalid", sqls[1])
 	}
 
 	if server == "" {
-		err := fmt.Errorf("请选择一个server; 输入`show servers`获取所有server; 输入`set <id>`设置server")
-		return err
+		return fmt.Errorf("请选择一个server; 输入`show servers`获取所有server; 输入`set <id>`设置server")
 	}
 
 	return ErrNotSetServer
+}
+
+func setDatabase(sql string) (name string, err error) {
+	defer func() {
+		if err != nil {
+			common.Error(err)
+		}
+	}()
+
+	sqls := strings.Split(strings.TrimSpace(sql), " ")
+	if len(sqls) == 2 && strings.ToLower(sqls[0]) == "use" && strings.HasPrefix(sqls[1], "`") && strings.HasSuffix(sqls[1], "`") {
+		if len(sqls[1]) <= 2 {
+			return "", fmt.Errorf("invalid database name(``)")
+		}
+		return sqls[1][1 : len(sqls[1])-1], nil
+	}
+
+	return sqls[1], nil
 }
 
 func setPrefix() {
@@ -86,6 +130,8 @@ func setPrefix() {
 }
 
 func execSQL(sql string) {
+	sql = strings.TrimSpace(sql)
+
 	if strings.ToLower(sql) == "show servers" {
 		s, err := phpmyadmin.DefaultPhpmyadmin.GetServerList(url)
 		if err != nil {
@@ -95,11 +141,7 @@ func execSQL(sql string) {
 		return
 	}
 
-	err := setServer(sql)
-	if err != ErrNotSetServer {
-		if err != nil {
-			common.Error(err)
-		}
+	if err := setServer(sql); err != ErrNotSetServer {
 		return
 	}
 
@@ -117,8 +159,10 @@ func execSQL(sql string) {
 
 	switch stmt.(type) {
 	case *sqlparser.Use:
-		dbs := strings.Split(sql, " ")
-		db := dbs[len(dbs)-1]
+		db, err := setDatabase(sql)
+		if err != nil {
+			return
+		}
 		if result == nil {
 			common.Warn(`(1049, u"Unknown database '%s'")`+"\n", db)
 			return
@@ -161,7 +205,7 @@ func completer(in prompt.Document) []prompt.Suggest {
 		suggest = append(suggest, prompt.Suggest{Text: v})
 	}
 
-	suggest = append(suggest, prompt.Suggest{Text: "servers"})
+	suggest = append(suggest, prompt.Suggest{Text: "SERVERS"})
 
 	return prompt.FilterHasPrefix(suggest, in.GetWordBeforeCursor(), true)
 }
@@ -173,6 +217,7 @@ func initConfig() {
 	flag.BoolVar(&prune, "prune", false, "清理命令记录")
 	flag.BoolVar(&list, "list", false, "获取server列表")
 	flag.StringVar(&server, "server", "", "选择server")
+	flag.BoolVar(&common.IsDebug1, "v", false, "开启调试信息")
 	flag.Parse()
 
 	phpmyadmin.DefaultPhpmyadmin.SetURI(url)
@@ -233,8 +278,8 @@ GLOBAL OPTIONS:
    --prune          清理命令记录
    --server         选择server
    --list           获取server列表
-   --history value  command history file (default: "%s")
-   --help, -h       show help`+"\n", historyPath)
+   --history value  command history file (default: "~/.phpmyadmin_cli_history")
+   --help, -h       show help`)
 		return
 	} else if prune {
 		err := shortHistory()

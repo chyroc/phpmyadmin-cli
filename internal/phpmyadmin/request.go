@@ -15,6 +15,9 @@ import (
 	"github.com/Chyroc/phpmyadmin-cli/internal/requests"
 )
 
+var DefaultPhpmyadmin *phpmyadmin
+var tokenRegexp = regexp.MustCompile("<input type=\"hidden\" name=\"token\" value=\"(.*?)\" >")
+
 type phpmyadmin struct {
 	*requests.Session
 	Token string
@@ -27,8 +30,6 @@ type PhpmyadminResp struct {
 	Error   string
 }
 
-var DefaultPhpmyadmin *phpmyadmin
-
 type Server struct {
 	ID   string
 	Name string
@@ -36,6 +37,25 @@ type Server struct {
 
 type Servers struct {
 	S []Server
+}
+
+func handlerPhpmyadminResp(r PhpmyadminResp) ([]byte, error) {
+	if !r.Success {
+		errdoc, err := goquery.NewDocumentFromReader(strings.NewReader(r.Error))
+		if err != nil {
+			return nil, err
+		}
+
+		var errMessage string
+		errdoc.Find("code").Each(func(_ int, code *goquery.Selection) {
+			if code.Text() != "" {
+				errMessage = code.Text()
+			}
+		})
+		return nil, fmt.Errorf(errMessage)
+	}
+
+	return []byte(r.Message), nil
 }
 
 func (s *Servers) Print() {
@@ -48,8 +68,6 @@ func init() {
 		Session: requests.DefaultSession,
 	}
 }
-
-var tokenRegexp = regexp.MustCompile("<input type=\"hidden\" name=\"token\" value=\"(.*?)\" >")
 
 func (p *phpmyadmin) SetURI(uri string) {
 	p.uri = uri
@@ -149,7 +167,12 @@ func (p *phpmyadmin) GetTables(server, database string) error {
 		return err
 	}
 
-	tables, err := docTables(r.Message)
+	m, err := handlerPhpmyadminResp(r)
+	if err != nil {
+		return err
+	}
+
+	tables, err := docTables(string(m))
 	if err != nil {
 		return err
 	}
@@ -178,6 +201,7 @@ func (p *phpmyadmin) ExecSQL(server, database, table, sql string) ([]byte, error
 		bs = append(bs, k+"="+url.QueryEscape(v))
 	}
 	body := strings.NewReader(strings.Join(bs, "&"))
+	common.Debug("ExecSQL [%v]\n", strings.Join(bs, "&"))
 	header := map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
 
 	resp, err := p.Post(p.uri+"/import.php", "", nil, header, body)
@@ -195,6 +219,7 @@ func (p *phpmyadmin) ExecSQL(server, database, table, sql string) ([]byte, error
 	if err = json.Unmarshal(b, &r); err != nil {
 		return nil, err
 	}
+	common.Debug("ExecSQL [%v]:[%v]:[%v]\n", r.Success, r.Error, r.Message)
 
-	return []byte(r.Message), err
+	return handlerPhpmyadminResp(r)
 }
