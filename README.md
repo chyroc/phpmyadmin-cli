@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/Chyroc/phpmyadmin-cli.svg?branch=master)](https://travis-ci.org/Chyroc/phpmyadmin-cli)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Chyroc/phpmyadmin-cli)](https://goreportcard.com/report/github.com/Chyroc/phpmyadmin-cli)
+[![codecov](https://codecov.io/gh/Chyroc/phpmyadmin-cli/branch/master/graph/badge.svg)](https://codecov.io/gh/Chyroc/phpmyadmin-cli)
 
 access phpmyadmin from cli / 通过shell操作phpmyadmin
 
