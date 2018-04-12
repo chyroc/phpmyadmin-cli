@@ -289,6 +289,9 @@ GLOBAL OPTIONS:
 		return
 	}
 
+	phpmyadmin.DefaultPHPMyAdmin.Login("root", "")
+	server="1"
+
 	p := prompt.New(
 		executor,
 		completer,

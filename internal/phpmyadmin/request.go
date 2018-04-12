@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
@@ -16,7 +15,7 @@ import (
 )
 
 var DefaultPHPMyAdmin *phpMyAdmin
-var tokenRegexp = regexp.MustCompile("<input type=\"hidden\" name=\"token\" value=\"(.*?)\" >")
+var tokenRegexp = regexp.MustCompile("<input type=\"hidden\" name=\"token\" value=\"(.*?)\" [/]>")
 
 type phpMyAdmin struct {
 	*requests.Session
@@ -74,7 +73,7 @@ func (p *phpMyAdmin) SetURI(uri string) {
 }
 
 func (p *phpMyAdmin) initCookie() error {
-	resp, err := requests.DefaultSession.Get(p.uri+"/index.php", "", nil)
+	resp, err := requests.DefaultSession.Get(p.uri, "index.php", nil)
 	if err != nil {
 		return err
 	}
@@ -97,12 +96,40 @@ func (p *phpMyAdmin) initCookie() error {
 	return nil
 }
 
+func (p *phpMyAdmin) Login(username, password string) error {
+	body := strings.NewReader(fmt.Sprintf("pma_username=%s&pma_password=%s", username, password))
+	header := map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
+	resp, err := requests.DefaultSession.Post(p.uri, "index.php", nil, header, body)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		common.Debug("%s\n", b)
+		return err
+	}
+
+	common.Info("%t\n", strings.Contains(string(b), "PMA_commonParams"))
+
+	return nil
+}
+
 func (p *phpMyAdmin) GetServerList(url string) (*Servers, error) {
-	resp, err := http.Get(fmt.Sprintf("http://%s", url))
+	resp, err := p.Get(url, "", nil)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	if common.IsDebug1 {
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			common.Debug("err %s\n", err)
+		}
+		common.Debug("return %s\n", string(b))
+	}
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
