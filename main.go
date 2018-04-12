@@ -232,7 +232,7 @@ func initConfig() {
 	phpmyadmin.DefaultPHPMyAdmin.SetURI(url)
 
 	if len(flag.Args()) > 0 {
-		fmt.Printf("", flag.Args())
+		fmt.Printf("%#v", flag.Args())
 		// execSQL("use " + flag.Args()[0])
 	}
 
