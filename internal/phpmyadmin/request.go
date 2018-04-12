@@ -122,65 +122,6 @@ func (p *phpMyAdmin) GetServerList(url string) (*Servers, error) {
 	return &Servers{s}, nil
 }
 
-func (p *phpMyAdmin) GetDatabases(server string) error {
-	if p.Token == "" {
-		p.initCookie()
-	}
-
-	body := strings.NewReader(fmt.Sprintf(`token=%s&server=%s`, p.Token, server))
-	header := map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
-
-	resp, err := requests.DefaultSession.Post(p.uri+"/index.php", "", nil, header, body)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	databases, err := docDatabases(resp)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("%#v\n", databases)
-
-	return nil
-}
-
-func (p *phpMyAdmin) GetTables(server, database string) error {
-	if p.Token == "" {
-		p.initCookie()
-	}
-
-	resp, err := requests.DefaultSession.Get(fmt.Sprintf("%s/db_structure.php?server=%s&db=%s&ajax_request=true&ajax_page_request=true", p.uri, server, database), "", nil)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	var r phpMyAdminResp
-	if err = json.Unmarshal(b, &r); err != nil {
-		return err
-	}
-
-	m, err := handlerPhpmyadminResp(r)
-	if err != nil {
-		return err
-	}
-
-	tables, err := docTables(string(m))
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("tables %#v\n", tables)
-
-	return nil
-}
 func (p *phpMyAdmin) ExecSQL(server, database, table, sql string) ([]byte, error) {
 	if p.Token == "" {
 		p.initCookie()
