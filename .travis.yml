@@ -1,20 +1,23 @@
 language: go
 
 go:
-  - 1.7
   - 1.8
   - 1.9
+  - 1.10
 
 before_install:
-  - go get github.com/mattn/goveralls
+  - go get -u github.com/haya14busa/goverage
 
 script:
 # lint
 #  test
   - make build
-  - go test -i $(go list ./... | grep -v /vendor)
+  - goverage -v -coverprofile=coverage.txt -covermode=count .
 
 notifications:
   email:
     on_success: never
     on_failure: never
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

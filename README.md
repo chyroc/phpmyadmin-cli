@@ -1,6 +1,7 @@
 # phpmyadmin-cli
 
 [![Build Status](https://travis-ci.org/Chyroc/phpmyadmin-cli.svg?branch=master)](https://travis-ci.org/Chyroc/phpmyadmin-cli)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Chyroc/phpmyadmin-cli)](https://goreportcard.com/report/github.com/Chyroc/phpmyadmin-cli)
 
 access phpmyadmin from cli / 通过shell操作phpmyadmin
 
