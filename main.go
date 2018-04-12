@@ -20,11 +20,14 @@ import (
 var currentDB string
 var url string
 var historyPath string
+var logPath string
 var history []string
 var help bool
 var prune bool
 var list bool
 var server string
+var username string
+var password string
 var ErrNotSetServer = errors.New("not set server")
 
 func getHomeDir() string {
@@ -190,6 +193,7 @@ var LivePrefixState struct {
 }
 
 func executor(in string) {
+	common.Logf(in)
 	addHistory(in)
 	sqls := strings.Split(in, ";")
 	for _, s := range sqls {
@@ -211,14 +215,19 @@ func completer(in prompt.Document) []prompt.Suggest {
 }
 
 func initConfig() {
-	flag.StringVar(&url, "url", "", "phpmyadmin url")
-	flag.StringVar(&historyPath, "history", getHomeDir()+"/.phpmyadmin_cli_history", "phpmyadmin url")
+	flag.StringVar(&url, "url", "", "phpMyAdmin url")
+	flag.StringVar(&historyPath, "history", getHomeDir()+"/.phpmyadmin_cli_history", "phpmyadmin history path")
+	flag.StringVar(&logPath, "log", getHomeDir()+"/.phpmyadmin_cli.log", "phpmyadmin log path")
 	flag.BoolVar(&help, "h", false, "show help")
 	flag.BoolVar(&prune, "prune", false, "清理命令记录")
 	flag.BoolVar(&list, "list", false, "获取server列表")
 	flag.StringVar(&server, "server", "", "选择server")
 	flag.BoolVar(&common.IsDebug1, "v", false, "开启调试信息")
+	flag.StringVar(&username, "username", "", "phpMyAdmin用户名")
+	flag.StringVar(&password, "password", "", "phpMyAdmin密码")
 	flag.Parse()
+
+	common.InitLog(logPath)
 
 	phpmyadmin.DefaultPHPMyAdmin.SetURI(url)
 
@@ -274,12 +283,16 @@ USAGE:
    phpmyadmin-cli [global options] [arguments...]
 
 GLOBAL OPTIONS:
-   --url value      phpmyadmin url
-   --prune          清理命令记录
-   --server         选择server
-   --list           获取server列表
-   --history value  command history file (default: "~/.phpmyadmin_cli_history")
-   --help, -h       show help`)
+   -url            phpMyAdmin url
+   -server         选择server
+   -username       phpMyAdmin用户名（为空则跳过验证）
+   -password       phpMyAdmin密码
+   -history        command history file (default: "~/.phpmyadmin_cli_history")
+   -log            command log file (default: "~/.phpmyadmin_cli.log")
+
+   -list           获取server列表
+   -prune          清理命令记录
+   -h              show help`)
 		return
 	} else if prune {
 		err := shortHistory()
@@ -289,8 +302,10 @@ GLOBAL OPTIONS:
 		return
 	}
 
-	phpmyadmin.DefaultPHPMyAdmin.Login("root", "")
-	server="1"
+	if username != "" {
+		phpmyadmin.DefaultPHPMyAdmin.Login(username, password)
+	}
+	server = "1"
 
 	p := prompt.New(
 		executor,
