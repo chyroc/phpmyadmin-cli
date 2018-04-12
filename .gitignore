@@ -16,5 +16,5 @@
 *.html
 .phpmyadmin_cli_history
 t/
-bin/
+bin/phpmyadmin-cli
 .python-version

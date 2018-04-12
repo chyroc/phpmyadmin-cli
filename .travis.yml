@@ -12,7 +12,7 @@ script:
 # lint
 #  test
   - make build
-  - goverage -v -coverprofile=coverage.txt -covermode=count .
+  - ./bin/test.sh
 
 notifications:
   email:
