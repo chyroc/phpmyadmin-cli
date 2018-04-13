@@ -3,8 +3,8 @@ package requests
 import (
 	"io"
 	"net/http"
-	"sync"
 	"net/http/cookiejar"
+	"sync"
 )
 
 type Session struct {
