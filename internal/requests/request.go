@@ -3,26 +3,13 @@ package requests
 import (
 	"io"
 	"net/http"
-	"net/http/cookiejar"
 	"net/url"
 	"strings"
 
 	"github.com/Chyroc/phpmyadmin-cli/internal/common"
 )
 
-var c http.Client
-
-func init() {
-	jar, err := cookiejar.New(nil)
-	if err != nil {
-		panic(err)
-	}
-	c = http.Client{
-		Jar: jar,
-	}
-}
-
-func request(method, uri, path string, query, header map[string]string, body io.Reader, cookies []*http.Cookie) (*http.Response, error) {
+func request(session *Session, method, uri, path string, query, header map[string]string, body io.Reader) (*http.Response, error) {
 	// todo fix and test http://http//xxx
 	if !strings.HasPrefix(uri, "http://") || !strings.HasPrefix(uri, "https://") {
 		uri = "http://" + uri
@@ -58,5 +45,5 @@ func request(method, uri, path string, query, header map[string]string, body io.
 		req.Header.Set(k, v)
 	}
 
-	return c.Do(req)
+	return session.client.Do(req)
 }

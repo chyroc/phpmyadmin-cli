@@ -1,9 +1,9 @@
 package common
 
 import (
+	"io"
 	"log"
 	"os"
-	"io"
 
 	"github.com/fatih/color"
 )
