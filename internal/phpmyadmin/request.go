@@ -97,6 +97,7 @@ func (p *phpMyAdmin) initCookie() error {
 }
 
 func (p *phpMyAdmin) Login(username, password string) (err error) {
+	fmt.Printf("username, password %s %s\n", username, password)
 	defer func() {
 		if err != nil {
 			common.Error(err)
@@ -104,6 +105,7 @@ func (p *phpMyAdmin) Login(username, password string) (err error) {
 	}()
 
 	body := strings.NewReader(fmt.Sprintf("pma_username=%s&pma_password=%s", username, password))
+	fmt.Printf("body %#v\n", body)
 	header := map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
 	resp, err := requests.DefaultSession.Post(p.uri, "index.php", nil, header, body)
 	if err != nil {
@@ -117,6 +119,9 @@ func (p *phpMyAdmin) Login(username, password string) (err error) {
 		return err
 	}
 	result := string(b)
+
+	fmt.Printf("result %s\n", result)
+	fmt.Printf("Contains %v\n", strings.Contains(result, "Access denied ") || strings.Contains(result, `input_username`) && strings.Contains(result, `input_password`))
 
 	if strings.Contains(result, "Access denied ") || strings.Contains(result, `input_username`) && strings.Contains(result, `input_password`) {
 		return fmt.Errorf("login err")
