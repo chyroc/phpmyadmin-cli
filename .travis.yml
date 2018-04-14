@@ -1,7 +1,5 @@
 language: go
 sudo: required
-env:
-  - DOCKER_COMPOSE_VERSION=1.4.2
 
 services:
   - docker
@@ -19,7 +17,7 @@ script:
 # lint
 #  test
   - make build
-  - sleep 5
+  - sleep 15
   - ./bin/test.sh
 
 notifications:
