@@ -19,6 +19,7 @@ script:
 # lint
 #  test
   - make build
+  - sleep 5
   - ./bin/test.sh
 
 notifications:
