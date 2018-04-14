@@ -122,7 +122,7 @@ func (p *phpMyAdmin) Login(username, password string) (err error) {
 		return fmt.Errorf("login err")
 	}
 
-	common.Info("login as [%s:%s] success\n", username)
+	common.Info("login as [%s] success\n", username)
 	return nil
 }
 

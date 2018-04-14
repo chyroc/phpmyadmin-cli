@@ -1,4 +1,10 @@
 language: go
+sudo: required
+env:
+  - DOCKER_COMPOSE_VERSION=1.4.2
+
+services:
+  - docker
 
 go:
   - 1.8.x
@@ -6,6 +12,7 @@ go:
   - 1.10.x
 
 before_install:
+  - ./testdata/start_server.sh
   - go get -u github.com/haya14busa/goverage
 
 script:
