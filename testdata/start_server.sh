@@ -12,9 +12,9 @@ do
 done
 }
 
-docker run --name mysql_db_server -e MYSQL_ROOT_PASSWORD=pass -d -p 3306:3306 mysql
+docker run --name mysql_db_server -e MYSQL_ROOT_PASSWORD=pass -d -p 3307:3306 mysql
 
-retry_curl 3306
+retry_curl 3307
 
 docker run --name myadmin -d --link mysql_db_server:db -p 8000:80 phpmyadmin/phpmyadmin
 
