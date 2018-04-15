@@ -62,23 +62,16 @@ CREATE TABLE IF NOT EXISTS `+ "`"+ `name`+ "`"+ ` (
 	as.NotNil(b)
 	buf.Reset()
 	show.ParseFromHTML(string(b))
-	as.Equal(`+-------+--------------------------------+
-| Table |          Create Table          |
-+-------+--------------------------------+
-| name  | CREATE TABLE `+ "`"+ `name`+ "`"+ ` (          |
-|       |  `+ "`"+ `id`+ "`"+ ` varchar(32) NOT NULL     |
-|       | COMMENT 'id',   `+ "`"+ `name`+ "`"+ `         |
-|       | varchar(255) NOT NULL COMMENT  |
-|       | '名称',   `+ "`"+ `created_at`+ "`"+ `         |
-|       | timestamp NOT NULL DEFAULT     |
-|       | CURRENT_TIMESTAMP COMMENT      |
-|       | '创建时间',   `+ "`"+ `updated_at`+ "`"+ `     |
-|       | timestamp NOT NULL DEFAULT     |
-|       | CURRENT_TIMESTAMP ON UPDATE    |
-|       | CURRENT_TIMESTAMP COMMENT      |
-|       | '更新时间' ) ENGINE=InnoDB     |
-|       | DEFAULT CHARSET=utf8mb4        |
-+-------+--------------------------------+
+	as.Equal(`+-------+------------------------------------------------------------------------------------------------------------+
+| Table |                                                Create Table                                                |
++-------+------------------------------------------------------------------------------------------------------------+
+| name  | CREATE TABLE `+ "`"+ `name`+ "`"+ ` (                                                                                      |
+|       |   `+ "`"+ `id`+ "`"+ ` varchar(32) NOT NULL COMMENT 'id',                                                                  |
+|       |   `+ "`"+ `name`+ "`"+ ` varchar(255) NOT NULL COMMENT '名称',                                                             |
+|       |   `+ "`"+ `created_at`+ "`"+ ` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',                            |
+|       |   `+ "`"+ `updated_at`+ "`"+ ` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间' |
+|       | ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4                                                                    |
++-------+------------------------------------------------------------------------------------------------------------+
 `, buf.String())
 
 	b, err = p.ExecSQL("", "test_phpmyadmin_cli", "", "truncate name")

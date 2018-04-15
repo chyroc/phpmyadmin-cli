@@ -79,6 +79,7 @@ func ParseFromHTML(html string) error {
 	t := tablewriter.NewWriter(out)
 	t.SetHeader(header)
 	t.SetAutoFormatHeaders(false)
+	t.SetAutoWrapText(false)
 	for _, v := range datas {
 		t.Append(v)
 	}
