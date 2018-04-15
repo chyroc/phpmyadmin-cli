@@ -8,6 +8,7 @@ import (
 
 	"github.com/Chyroc/phpmyadmin-cli/internal/requests"
 	"github.com/Chyroc/phpmyadmin-cli/internal/show"
+	"github.com/Chyroc/phpmyadmin-cli/internal/common"
 )
 
 func initClient() *phpMyAdmin {
@@ -26,9 +27,10 @@ func TestLogin(t *testing.T) {
 	p.SetURI("localhost:8000")
 
 	as.Nil(p.Login("root", "pass"))
+
 	err := p.Login("root", "error")
 	as.NotNil(err)
-	as.Equal("login err", err.Error())
+	as.Equal(common.ErrLoginFailed, err)
 }
 
 func TestShowDatabases(t *testing.T) {
@@ -137,3 +139,15 @@ func TestShowTables(t *testing.T) {
 +---------------------------------------+
 `, buf.String())
 }
+
+// test case
+//
+// no need login
+// success: phpmyadmin-cli -url 127.0.0.1:8000
+// success: phpmyadmin-cli -url 127.0.0.1:8000 -username root
+// success: phpmyadmin-cli -url 127.0.0.1:8000 -username root -password pass
+
+// need login
+// need login: phpmyadmin-cli -url 127.0.0.1:8000
+// login failed: phpmyadmin-cli -url 127.0.0.1:8000 -username root
+// success: phpmyadmin-cli -url 127.0.0.1:8000 -username root -password pass

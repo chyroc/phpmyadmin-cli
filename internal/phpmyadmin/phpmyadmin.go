@@ -53,17 +53,6 @@ func (p *phpMyAdmin) SetURI(uri string) {
 	p.uri = uri
 }
 
-func (p *phpMyAdmin) initCookie() error {
-	b, err := p.Get(p.uri, "index.php", nil)
-	if err != nil {
-		return err
-	}
-	if strings.Contains(string(b), "login_form") {
-		return common.ErrNeedLogin
-	}
-	return nil
-}
-
 func (p *phpMyAdmin) Login(username, password string) (err error) {
 	defer func() {
 		if err != nil {
@@ -71,13 +60,21 @@ func (p *phpMyAdmin) Login(username, password string) (err error) {
 		}
 	}()
 
-	if err = p.initCookie(); err != nil && err != common.ErrNeedLogin {
-		return err
+	if _, err = p.Get(p.uri, "index.php", nil); err != nil {
+		// username == "", but check login err
+		// username != "" and common.ErrNeedLogin, try to login
+		if username == "" || (username != "" && err != common.ErrNeedLogin) {
+			return err
+		}
 	}
+
 	body := fmt.Sprintf("pma_username=%s&pma_password=%s&token=%s", username, password, utils.Escape(p.Token))
 	header := map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
 
 	if _, err := p.Post(p.uri, "index.php", nil, header, strings.NewReader(body)); err != nil {
+		if err == common.ErrNeedLogin {
+			return common.ErrLoginFailed
+		}
 		return err
 	}
 
@@ -87,7 +84,7 @@ func (p *phpMyAdmin) Login(username, password string) (err error) {
 	}
 
 	if !strings.Contains(string(result), "SHOW PROCESSLIST") {
-		return fmt.Errorf("login err")
+		return common.ErrLoginFailed
 	}
 
 	common.Info("login as [%s] success\n", username)
@@ -123,15 +120,6 @@ func (p *phpMyAdmin) GetServerList(url string) (*Servers, error) {
 }
 
 func (p *phpMyAdmin) ExecSQL(server, database, table, sql string) ([]byte, error) {
-	if p.Token == "" {
-		if err := p.initCookie(); err != nil {
-			if err == common.ErrNeedLogin {
-				common.Exit(err)
-			}
-			return nil, err
-		}
-	}
-
 	data := map[string]string{
 		// "table":             table,
 		// "prev_sql_query":    "",

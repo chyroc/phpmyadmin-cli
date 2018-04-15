@@ -47,7 +47,11 @@ func refreshToken(p *phpMyAdmin, resp *http.Response) ([]byte, error) {
 		p.Token = matchToken[1]
 	}
 
-	return b, nil
+	if strings.Contains(string(b), "login_form") {
+		err = common.ErrNeedLogin
+	}
+
+	return b, err
 }
 
 func (p *phpMyAdmin) Get(uri, path string, query map[string]string) ([]byte, error) {

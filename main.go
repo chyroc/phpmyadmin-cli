@@ -302,11 +302,8 @@ GLOBAL OPTIONS:
 		return
 	}
 
-	if username != "" {
-		err := phpmyadmin.DefaultPHPMyAdmin.Login(username, password)
-		if err != nil {
-			common.Exit(err)
-		}
+	if err := phpmyadmin.DefaultPHPMyAdmin.Login(username, password); err != nil {
+		common.Exit(err)
 	}
 	server = "1"
 
