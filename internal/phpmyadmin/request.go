@@ -17,7 +17,7 @@ func handlerPhpmyadminResp(r phpMyAdminResp) ([]byte, error) {
 		return nil, fmt.Errorf("invalid PhpmyadminResp")
 	}
 
-	common.Debug2("phpMyAdminResp [%v]:[%v]:[%v]\n", r.Success, r.Error, r.Message)
+	common.Debug2("phpMyAdminResp [%v]:[%v]\n", r.Success, r.Error)
 
 	if !r.Success {
 		errdoc, err := goquery.NewDocumentFromReader(strings.NewReader(r.Error))
@@ -42,6 +42,8 @@ func refreshToken(p *phpMyAdmin, resp *http.Response) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	common.Debug3("return html %s\n", b)
 
 	matchToken := tokenRegexp.FindStringSubmatch(string(b))
 	if len(matchToken) == 2 {

@@ -97,7 +97,6 @@ func (p *phpMyAdmin) GetServerList(url string) (*Servers, error) {
 		return nil, err
 	}
 
-	common.Debug3("return %s\n", string(b))
 
 	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(b))
 	if err != nil {
@@ -139,8 +138,6 @@ func (p *phpMyAdmin) ExecSQL(server, database, table, sql string) ([]byte, error
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Printf("result %s\n", b)
 
 	var r phpMyAdminResp
 	if err = json.Unmarshal(b, &r); err != nil {
