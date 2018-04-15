@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"strings"
 	"net/url"
+	"strings"
 )
 
 func Escape(s string) string {

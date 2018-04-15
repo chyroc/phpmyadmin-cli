@@ -10,8 +10,7 @@ import (
 )
 
 func request(session *Session, method, uri, path string, query, header map[string]string, body io.Reader) (*http.Response, error) {
-	// todo fix and test http://http//xxx
-	if !strings.HasPrefix(uri, "http://") || !strings.HasPrefix(uri, "https://") {
+	if !strings.HasPrefix(uri, "http://") && !strings.HasPrefix(uri, "https://") {
 		uri = "http://" + uri
 	}
 

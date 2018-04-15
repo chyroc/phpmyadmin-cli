@@ -37,7 +37,7 @@ func Error(err error) {
 }
 
 func Exit(err error) {
-	color.Red("%s\n", err)
+	Error(err)
 	os.Exit(1)
 }
 

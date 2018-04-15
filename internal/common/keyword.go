@@ -1,7 +1,8 @@
 package common
 
 // SELECT * FROM mysql.help_keyword;
-var MySQLKeywords = []string{"ACCESSIBLE",
+var MySQLKeywords = []string{
+	"ACCESSIBLE",
 	"ADD",
 	"ALL",
 	"ALTER",
