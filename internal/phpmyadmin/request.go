@@ -121,10 +121,14 @@ func (p *phpMyAdmin) Login(username, password string) (err error) {
 	}
 	defer resp.Body.Close()
 
+	b, _ := ioutil.ReadAll(resp.Body)
+	fmt.Printf("\n\n\nindex.php %s\n\n\n", b)
+
 	result, err := p.requestGET("server_status_processes.php")
 	if err != nil {
 		return err
 	}
+	fmt.Printf("\n\n\nstatus result %s\n\n\n", result)
 	if !strings.Contains(string(result), "SHOW PROCESSLIST") {
 		return fmt.Errorf("login err")
 	}
