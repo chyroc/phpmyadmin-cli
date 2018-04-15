@@ -24,6 +24,18 @@ func Debug(format string, a ...interface{}) {
 	}
 }
 
+func Debug2(format string, a ...interface{}) {
+	if IsDebug2 {
+		color.HiBlack(format, a...)
+	}
+}
+
+func Debug3(format string, a ...interface{}) {
+	if IsDebug3 {
+		color.HiBlack(format, a...)
+	}
+}
+
 func Info(format string, a ...interface{}) {
 	color.Green(format, a...)
 }
