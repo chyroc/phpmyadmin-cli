@@ -19,3 +19,12 @@ retry_curl 3307
 docker run --name myadmin -d --link mysql_db_server:db -p 8000:80 phpmyadmin/phpmyadmin
 
 retry_curl 8000
+
+curl -i -X POST 'http://127.0.0.1:8000/index.php?ajax_request=true' -d 'pma_username=root&pma_password=pass&lang=en'
+
+
+echo $(docker ps | grep 'myadmin' | cut -d ' ' -f 1)
+
+# curl -i -X POST 'http://127.0.0.1/index.php?ajax_request=true' -d 'pma_username=root&pma_password=pass&lang=en'
+
+docker exec -it $(docker ps | grep 'myadmin' | cut -d ' ' -f 1) curl -i -X POST 'http://127.0.0.1/index.php?ajax_request=true' -d 'pma_username=root&pma_password=pass&lang=en'
