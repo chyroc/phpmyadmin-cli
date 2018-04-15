@@ -18,7 +18,8 @@ import (
 )
 
 var currentDB string
-var url string
+var port int
+var host string
 var historyPath string
 var logPath string
 var history []string
@@ -36,6 +37,30 @@ func getHomeDir() string {
 		panic(err)
 	}
 	return usr.HomeDir
+}
+
+func printHelp() {
+	fmt.Printf(`NAME:
+   phpmyadmin-cli - access phpmyadmin from shell cli
+
+USAGE:
+   phpmyadmin-cli [global options] [arguments...]
+
+GLOBAL OPTIONS:
+   -host           phpMyAdmin host
+   -port           phpMyAdmin port
+   -server         选择server
+   -username       phpMyAdmin用户名（为空则跳过验证）
+   -password       phpMyAdmin密码
+   -history        command history file (default: "~/.phpmyadmin_cli_history")
+   -log            command log file (default: "~/.phpmyadmin_cli.log")
+   -v              开启调试信息 v
+   -vv             开启调试信息 vv
+   -vvv            开启调试信息 vvv
+
+   -list           获取server列表
+   -prune          清理命令记录
+   -h              show help`)
 }
 
 func addHistory(word string) {
@@ -215,7 +240,8 @@ func completer(in prompt.Document) []prompt.Suggest {
 }
 
 func initConfig() {
-	flag.StringVar(&url, "url", "", "phpMyAdmin url")
+	flag.StringVar(&host, "host", "127.0.0.1", "phpMyAdmin host")
+	flag.IntVar(&port, "port", 0, "phpMyAdmin port")
 	flag.StringVar(&historyPath, "history", getHomeDir()+"/.phpmyadmin_cli_history", "phpmyadmin history path")
 	flag.StringVar(&logPath, "log", getHomeDir()+"/.phpmyadmin_cli.log", "phpmyadmin log path")
 	flag.BoolVar(&help, "h", false, "show help")
@@ -231,7 +257,7 @@ func initConfig() {
 
 	common.InitLog(logPath)
 
-	phpmyadmin.DefaultPHPMyAdmin.SetURI(url)
+	phpmyadmin.DefaultPHPMyAdmin.SetURI(fmt.Sprintf("%s:%d", host, port))
 
 	if len(flag.Args()) > 0 {
 		fmt.Printf("%#v", flag.Args())
@@ -277,24 +303,8 @@ func shortHistory() error {
 func main() {
 	initConfig()
 
-	if help {
-		fmt.Printf(`NAME:
-   phpmyadmin-cli - access phpmyadmin from shell cli
-
-USAGE:
-   phpmyadmin-cli [global options] [arguments...]
-
-GLOBAL OPTIONS:
-   -url            phpMyAdmin url
-   -server         选择server
-   -username       phpMyAdmin用户名（为空则跳过验证）
-   -password       phpMyAdmin密码
-   -history        command history file (default: "~/.phpmyadmin_cli_history")
-   -log            command log file (default: "~/.phpmyadmin_cli.log")
-
-   -list           获取server列表
-   -prune          清理命令记录
-   -h              show help`)
+	if help || len(os.Args) == 1 {
+		printHelp()
 		return
 	} else if prune {
 		err := shortHistory()

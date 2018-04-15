@@ -19,13 +19,13 @@ func InitLog(logPath string) {
 }
 
 func Debug(format string, a ...interface{}) {
-	if IsDebug1 {
+	if IsDebug1 || IsDebug2 || IsDebug3 {
 		color.HiBlack(format, a...)
 	}
 }
 
 func Debug2(format string, a ...interface{}) {
-	if IsDebug2 {
+	if IsDebug2 || IsDebug3 {
 		color.HiBlack(format, a...)
 	}
 }
