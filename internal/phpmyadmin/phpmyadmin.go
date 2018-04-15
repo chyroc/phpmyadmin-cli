@@ -97,9 +97,7 @@ func (p *phpMyAdmin) GetServerList(url string) (*Servers, error) {
 		return nil, err
 	}
 
-	if common.IsDebug1 {
-		common.Debug("return %s\n", string(b))
-	}
+	common.Debug3("return %s\n", string(b))
 
 	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(b))
 	if err != nil {
@@ -135,7 +133,6 @@ func (p *phpMyAdmin) ExecSQL(server, database, table, sql string) ([]byte, error
 		bs = append(bs, k+"="+utils.Escape(v))
 	}
 	body := strings.NewReader(strings.Join(bs, "&"))
-	common.Debug("ExecSQL body [%v]\n", strings.Join(bs, "&"))
 	header := map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
 
 	b, err := p.Post(p.uri+"/import.php", "", nil, header, body)
@@ -149,7 +146,6 @@ func (p *phpMyAdmin) ExecSQL(server, database, table, sql string) ([]byte, error
 	if err = json.Unmarshal(b, &r); err != nil {
 		return nil, err
 	}
-	common.Debug("ExecSQL [%v]:[%v]:[%v]\n", r.Success, r.Error, r.Message)
 
 	return handlerPhpmyadminResp(r)
 }

@@ -17,8 +17,9 @@ func handlerPhpmyadminResp(r phpMyAdminResp) ([]byte, error) {
 		return nil, fmt.Errorf("invalid PhpmyadminResp")
 	}
 
+	common.Debug2("phpMyAdminResp [%v]:[%v]:[%v]\n", r.Success, r.Error, r.Message)
+
 	if !r.Success {
-		common.Debug("%#v\n", r)
 		errdoc, err := goquery.NewDocumentFromReader(strings.NewReader(r.Error))
 		if err != nil {
 			return nil, err

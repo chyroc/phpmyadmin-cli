@@ -31,9 +31,7 @@ func request(session *Session, method, uri, path string, query, header map[strin
 		URL.RawQuery = q.Encode()
 	}
 
-	common.Debug("method %s\n", method)
-	common.Debug("url %s\n", URL.String())
-	common.Debug("body %#v\n", body)
+	common.Debug("http %s %s with %#v\n", method, URL.String(), body)
 
 	req, err := http.NewRequest(method, URL.String(), body)
 	if err != nil {
