@@ -1,12 +1,14 @@
 package show
 
 import (
+	"io"
 	"os"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/olekukonko/tablewriter"
-	"io"
+
+	"github.com/Chyroc/phpmyadmin-cli/internal/common"
 )
 
 var out io.Writer = os.Stdout
@@ -25,6 +27,12 @@ func parseFromHTML(html string) ([]string, [][]string, error) {
 	var datas [][]string
 	var columnLine = -1
 	var rowLine = -1
+
+	doc.Find("table").Each(func(i int, selection *goquery.Selection) {
+		if selection.HasClass("print_ignore") {
+			selection.Remove()
+		}
+	})
 
 	// header
 	doc.Find("tr").Each(func(j int, tr *goquery.Selection) {
@@ -78,6 +86,17 @@ func ParseFromHTML(html string) error {
 	header, datas, err := parseFromHTML(html)
 	if err != nil {
 		return err
+	}
+
+	for _, v := range header {
+		common.Debug3("header [%s]\n", v)
+	}
+
+	for _, vv := range datas {
+		for _, v := range vv {
+			common.Debug3("datas [%s]\n", v)
+		}
+
 	}
 
 	t := tablewriter.NewWriter(out)
