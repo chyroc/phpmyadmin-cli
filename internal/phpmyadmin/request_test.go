@@ -1,16 +1,29 @@
 package phpmyadmin
 
-import "testing"
+import (
+	"testing"
+	"github.com/Chyroc/phpmyadmin-cli/internal/requests"
+)
+
+func initClient() *phpMyAdmin {
+	s, err := requests.NewSession()
+	if err != nil {
+		panic(err)
+	}
+	return &phpMyAdmin{
+		Session: s,
+	}
+}
 
 func TestLogin(t *testing.T) {
-	DefaultPHPMyAdmin.SetURI("localhost:8000")
-	err := DefaultPHPMyAdmin.Login("root", "pass")
-	if err != nil {
+	p := initClient()
+	p.SetURI("10.102.3.114:8000")
+
+	if err := p.Login("root", "pass"); err != nil {
 		t.Errorf(err.Error())
 	}
 
-	err = DefaultPHPMyAdmin.Login("root", "error")
-	if err == nil {
+	if err := p.Login("root", "error"); err == nil {
 		t.Errorf("should return err")
 	}
 }
