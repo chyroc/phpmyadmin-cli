@@ -12,6 +12,7 @@ import (
 
 	"github.com/Chyroc/phpmyadmin-cli/internal/common"
 	"github.com/Chyroc/phpmyadmin-cli/internal/requests"
+	"github.com/Chyroc/phpmyadmin-cli/internal/utils"
 )
 
 var DefaultPHPMyAdmin *phpMyAdmin
@@ -73,7 +74,7 @@ func (p *phpMyAdmin) SetURI(uri string) {
 }
 
 func (p *phpMyAdmin) initCookie() error {
-	resp, err := requests.DefaultSession.Get(p.uri, "index.php", nil)
+	resp, err := p.Get(p.uri, "index.php", nil)
 	if err != nil {
 		return err
 	}
@@ -103,26 +104,33 @@ func (p *phpMyAdmin) Login(username, password string) (err error) {
 		}
 	}()
 
-	body := strings.NewReader(fmt.Sprintf("pma_username=%s&pma_password=%s", username, password))
+	if err = p.initCookie(); err != nil {
+		return err
+	}
+	body := fmt.Sprintf("pma_username=%s&pma_password=%s&token=%s", username, password, utils.Escape(p.Token))
 	header := map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
-	resp, err := requests.DefaultSession.Post(p.uri, "index.php", nil, header, body)
+	resp, err := p.Post(p.uri, "index.php", nil, header, strings.NewReader(body))
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	b, err := ioutil.ReadAll(resp.Body)
+	resp2, err := p.Get(p.uri, "server_status_processes.php", nil)
 	if err != nil {
-		common.Debug("%s\n", b)
 		return err
 	}
-	result := string(b)
+	defer resp2.Body.Close()
 
-	if strings.Contains(result, "Access denied ") || strings.Contains(result, `input_username`) && strings.Contains(result, `input_password`) {
+	result, err := ioutil.ReadAll(resp2.Body)
+	if err != nil {
+		return err
+	}
+
+	if !strings.Contains(string(result), "SHOW PROCESSLIST") {
 		return fmt.Errorf("login err")
 	}
 
-	common.Info("login as [%s:%s] success\n", username)
+	common.Info("login as [%s] success\n", username)
 	return nil
 }
 

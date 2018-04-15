@@ -15,19 +15,27 @@ type Session struct {
 
 var DefaultSession *Session
 
-func init() {
+func NewSession() (*Session, error) {
 	jar, err := cookiejar.New(nil)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	DefaultSession = &Session{
+	return &Session{
 		cookies:    make(map[string]*http.Cookie),
 		cookieLock: new(sync.Mutex),
 		client: http.Client{
 			Jar: jar,
 		},
+	}, nil
+}
+
+func init() {
+	s, err := NewSession()
+	if err != nil {
+		panic(err)
 	}
+	DefaultSession = s
 }
 
 func (r *Session) setCookie(resp *http.Response) {
