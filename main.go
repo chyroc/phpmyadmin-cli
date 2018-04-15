@@ -75,7 +75,7 @@ func setServer(sql string) (err error) {
 			return fmt.Errorf("请选择一个server; 输入`show servers`获取所有server; 输入`set <id>`设置server")
 		}
 
-		s, err := phpmyadmin.DefaultPHPMyAdmin.GetServerList(url)
+		s, err := phpmyadmin.DefaultPHPMyAdmin.GetServerList()
 		if err != nil {
 			return err
 		}
@@ -136,7 +136,7 @@ func execSQL(sql string) {
 	sql = strings.TrimSpace(sql)
 
 	if strings.ToLower(sql) == "show servers" {
-		s, err := phpmyadmin.DefaultPHPMyAdmin.GetServerList(url)
+		s, err := phpmyadmin.DefaultPHPMyAdmin.GetServerList()
 		if err != nil {
 			common.Error(err)
 		}

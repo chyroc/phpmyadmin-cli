@@ -40,6 +40,10 @@ func parseFromHTML(html string) ([]string, [][]string, error) {
 		}
 
 		tr.Find("th").Each(func(_ int, th *goquery.Selection) {
+			if th.Find("span").HasClass("tblcomment") {
+				th.Find("span").Remove()
+			}
+
 			thText := th.Text()
 			if thText != "" {
 				header = append(header, strings.TrimSpace(thText))
@@ -79,6 +83,7 @@ func ParseFromHTML(html string) error {
 	t := tablewriter.NewWriter(out)
 	t.SetHeader(header)
 	t.SetAutoFormatHeaders(false)
+	t.SetAutoWrapText(false)
 	for _, v := range datas {
 		t.Append(v)
 	}
