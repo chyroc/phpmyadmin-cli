@@ -26,7 +26,9 @@ func TestLogin(t *testing.T) {
 	p.SetURI("localhost:8000")
 
 	as.Nil(p.Login("root", "pass"))
-	as.NotNil(p.Login("root", "error"))
+	err := p.Login("root", "error")
+	as.NotNil(err)
+	as.Equal("login err", err.Error())
 }
 
 func TestShowDatabases(t *testing.T) {
@@ -54,7 +56,7 @@ func TestShowDatabases(t *testing.T) {
 `, buf.String())
 }
 
-func TestShowTable(t *testing.T) {
+func TestShowTables(t *testing.T) {
 	p := initClient()
 	as := assert.New(t)
 	p.SetURI("localhost:8000")

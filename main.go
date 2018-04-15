@@ -303,7 +303,10 @@ GLOBAL OPTIONS:
 	}
 
 	if username != "" {
-		phpmyadmin.DefaultPHPMyAdmin.Login(username, password)
+		err := phpmyadmin.DefaultPHPMyAdmin.Login(username, password)
+		if err != nil {
+			common.Exit(err)
+		}
 	}
 	server = "1"
 

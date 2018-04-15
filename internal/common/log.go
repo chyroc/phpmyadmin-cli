@@ -36,6 +36,11 @@ func Error(err error) {
 	color.Red("%s\n", err)
 }
 
+func Exit(err error) {
+	color.Red("%s\n", err)
+	os.Exit(1)
+}
+
 func Logf(format string, a ...interface{}) {
 	if f == nil {
 		f = os.Stdout

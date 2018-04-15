@@ -54,8 +54,14 @@ func (p *phpMyAdmin) SetURI(uri string) {
 }
 
 func (p *phpMyAdmin) initCookie() error {
-	_, err := p.Get(p.uri, "index.php", nil)
-	return err
+	b, err := p.Get(p.uri, "index.php", nil)
+	if err != nil {
+		return err
+	}
+	if strings.Contains(string(b), "login_form") {
+		return common.ErrNeedLogin
+	}
+	return nil
 }
 
 func (p *phpMyAdmin) Login(username, password string) (err error) {
@@ -65,7 +71,7 @@ func (p *phpMyAdmin) Login(username, password string) (err error) {
 		}
 	}()
 
-	if err = p.initCookie(); err != nil {
+	if err = p.initCookie(); err != nil && err != common.ErrNeedLogin {
 		return err
 	}
 	body := fmt.Sprintf("pma_username=%s&pma_password=%s&token=%s", username, password, utils.Escape(p.Token))
@@ -118,7 +124,12 @@ func (p *phpMyAdmin) GetServerList(url string) (*Servers, error) {
 
 func (p *phpMyAdmin) ExecSQL(server, database, table, sql string) ([]byte, error) {
 	if p.Token == "" {
-		p.initCookie()
+		if err := p.initCookie(); err != nil {
+			if err == common.ErrNeedLogin {
+				common.Exit(err)
+			}
+			return nil, err
+		}
 	}
 
 	data := map[string]string{
