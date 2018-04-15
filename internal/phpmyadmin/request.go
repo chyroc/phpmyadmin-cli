@@ -73,16 +73,6 @@ func (p *phpMyAdmin) SetURI(uri string) {
 	p.uri = uri
 }
 
-func (p *phpMyAdmin) requestGET(uri string) ([]byte, error) {
-	resp, err := p.Get(p.uri, uri, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	return ioutil.ReadAll(resp.Body)
-}
-
 func (p *phpMyAdmin) initCookie() error {
 	resp, err := p.Get(p.uri, "index.php", nil)
 	if err != nil {
@@ -117,23 +107,25 @@ func (p *phpMyAdmin) Login(username, password string) (err error) {
 	if err = p.initCookie(); err != nil {
 		return err
 	}
-	fmt.Printf("token [%s]\n", p.Token)
-
-	// y2 = strings.Replace(y2, "~", "%7e", -1)
-	x := fmt.Sprintf("pma_username=%s&pma_password=%s&token=%s", username, password, utils.Escape(p.Token))
-	fmt.Printf("body [%s]\n", x)
-	body := strings.NewReader(x)
+	body := fmt.Sprintf("pma_username=%s&pma_password=%s&token=%s", username, password, utils.Escape(p.Token))
 	header := map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
-	resp, err := p.Post(p.uri, "index.php", nil, header, body)
+	resp, err := p.Post(p.uri, "index.php", nil, header, strings.NewReader(body))
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	result, err := p.requestGET("server_status_processes.php")
+	resp2, err := p.Get(p.uri, "server_status_processes.php", nil)
 	if err != nil {
 		return err
 	}
+	defer resp2.Body.Close()
+
+	result, err := ioutil.ReadAll(resp2.Body)
+	if err != nil {
+		return err
+	}
+
 	if !strings.Contains(string(result), "SHOW PROCESSLIST") {
 		return fmt.Errorf("login err")
 	}
