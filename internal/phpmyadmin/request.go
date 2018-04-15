@@ -104,7 +104,7 @@ func (p *phpMyAdmin) Login(username, password string) (err error) {
 		}
 	}()
 
-	body := strings.NewReader(fmt.Sprintf("pma_username=%s&pma_password=%s", username, password))
+	body := strings.NewReader(fmt.Sprintf("pma_username=%s&pma_password=%s&lang=en", username, password))
 	fmt.Printf("body %#v\n", body)
 	header := map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
 	resp, err := requests.DefaultSession.Post(p.uri, "index.php", nil, header, body)
