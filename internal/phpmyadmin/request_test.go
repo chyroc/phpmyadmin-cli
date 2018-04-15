@@ -2,6 +2,7 @@ package phpmyadmin
 
 import (
 	"testing"
+
 	"github.com/Chyroc/phpmyadmin-cli/internal/requests"
 )
 
@@ -17,7 +18,7 @@ func initClient() *phpMyAdmin {
 
 func TestLogin(t *testing.T) {
 	p := initClient()
-	p.SetURI("10.102.3.114:8000")
+	p.SetURI("localhost:8000")
 
 	if err := p.Login("root", "pass"); err != nil {
 		t.Errorf(err.Error())
