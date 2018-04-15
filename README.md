@@ -26,12 +26,16 @@ USAGE:
    phpmyadmin-cli [global options] [arguments...]
 
 GLOBAL OPTIONS:
-   --url value      phpmyadmin url
-   --prune          清理命令记录
-   --server         选择server
-   --list           获取server列表
-   --history value  command history file (default: "~/.phpmyadmin_cli_history")
-   --help, -h       show help
+   -url            phpMyAdmin url
+   -server         选择server
+   -username       phpMyAdmin用户名（为空则跳过验证）
+   -password       phpMyAdmin密码
+   -history        command history file (default: "~/.phpmyadmin_cli_history")
+   -log            command log file (default: "~/.phpmyadmin_cli.log")
+
+   -list           获取server列表
+   -prune          清理命令记录
+   -h              show help
 ```
 
 ```
