@@ -6,7 +6,14 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/olekukonko/tablewriter"
+	"io"
 )
+
+var out io.Writer = os.Stdout
+
+func TestSetOut(w io.Writer) {
+	out = w
+}
 
 func parseFromHTML(html string) ([]string, [][]string, error) {
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
@@ -69,7 +76,7 @@ func ParseFromHTML(html string) error {
 		return err
 	}
 
-	t := tablewriter.NewWriter(os.Stdout)
+	t := tablewriter.NewWriter(out)
 	t.SetHeader(header)
 	t.SetAutoFormatHeaders(false)
 	for _, v := range datas {

@@ -1,46 +1,24 @@
 package phpmyadmin
 
 import (
-	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
-	"net/url"
-	"regexp"
+	"net/http"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 
 	"github.com/Chyroc/phpmyadmin-cli/internal/common"
-	"github.com/Chyroc/phpmyadmin-cli/internal/requests"
-	"github.com/Chyroc/phpmyadmin-cli/internal/utils"
 )
 
-var DefaultPHPMyAdmin *phpMyAdmin
-var tokenRegexp = regexp.MustCompile("<input type=\"hidden\" name=\"token\" value=\"(.*?)\" [/]>")
-
-type phpMyAdmin struct {
-	*requests.Session
-	Token string
-	uri   string
-}
-
-type phpMyAdminResp struct {
-	Message string
-	Success bool
-	Error   string
-}
-
-type Server struct {
-	ID   string
-	Name string
-}
-
-type Servers struct {
-	S []Server
-}
-
 func handlerPhpmyadminResp(r phpMyAdminResp) ([]byte, error) {
+	if r.Message == "" && r.Error == "" && !r.Success {
+		return nil, fmt.Errorf("invalid PhpmyadminResp")
+	}
+
 	if !r.Success {
+		common.Debug("%#v\n", r)
 		errdoc, err := goquery.NewDocumentFromReader(strings.NewReader(r.Error))
 		if err != nil {
 			return nil, err
@@ -58,154 +36,34 @@ func handlerPhpmyadminResp(r phpMyAdminResp) ([]byte, error) {
 	return []byte(r.Message), nil
 }
 
-func (s *Servers) Print() {
-	for _, v := range s.S {
-		common.Info(fmt.Sprintf("%s: %s\n", v.ID, v.Name))
-	}
-}
-func init() {
-	DefaultPHPMyAdmin = &phpMyAdmin{
-		Session: requests.DefaultSession,
-	}
-}
-
-func (p *phpMyAdmin) SetURI(uri string) {
-	p.uri = uri
-}
-
-func (p *phpMyAdmin) initCookie() error {
-	resp, err := p.Get(p.uri, "index.php", nil)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
+func refreshToken(p *phpMyAdmin, resp *http.Response) ([]byte, error) {
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	matchToken := tokenRegexp.FindStringSubmatch(string(b))
-	if len(matchToken) != 2 {
-		return fmt.Errorf("match token err: %s", strings.Join(matchToken, ";"))
-	} else if matchToken[1] == "" {
-		return fmt.Errorf("empty token")
+	if len(matchToken) == 2 {
+		p.Token = matchToken[1]
 	}
 
-	p.Token = matchToken[1]
-
-	return nil
+	return b, nil
 }
 
-func (p *phpMyAdmin) Login(username, password string) (err error) {
-	defer func() {
-		if err != nil {
-			common.Error(err)
-		}
-	}()
-
-	if err = p.initCookie(); err != nil {
-		return err
-	}
-	body := fmt.Sprintf("pma_username=%s&pma_password=%s&token=%s", username, password, utils.Escape(p.Token))
-	header := map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
-	resp, err := p.Post(p.uri, "index.php", nil, header, strings.NewReader(body))
+func (p *phpMyAdmin) Get(uri, path string, query map[string]string) ([]byte, error) {
+	resp, err := p.session.Get(uri, path, query)
 	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	resp2, err := p.Get(p.uri, "server_status_processes.php", nil)
-	if err != nil {
-		return err
-	}
-	defer resp2.Body.Close()
-
-	result, err := ioutil.ReadAll(resp2.Body)
-	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if !strings.Contains(string(result), "SHOW PROCESSLIST") {
-		return fmt.Errorf("login err")
-	}
-
-	common.Info("login as [%s] success\n", username)
-	return nil
+	return refreshToken(p, resp)
 }
 
-func (p *phpMyAdmin) GetServerList(url string) (*Servers, error) {
-	resp, err := p.Get(url, "", nil)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if common.IsDebug1 {
-		b, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			common.Debug("err %s\n", err)
-		}
-		common.Debug("return %s\n", string(b))
-	}
-
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
+func (p *phpMyAdmin) Post(uri, path string, query, header map[string]string, body io.Reader) ([]byte, error) {
+	resp, err := p.session.Post(uri, path, query, header, body)
 	if err != nil {
 		return nil, err
 	}
 
-	var s []Server
-	doc.Find("#select_server > option").Each(func(_ int, selection *goquery.Selection) {
-		id := strings.TrimSpace(selection.AttrOr("value", ""))
-		name := strings.TrimSpace(selection.Text())
-
-		if id != "" {
-			s = append(s, Server{id, name})
-		}
-	})
-
-	return &Servers{s}, nil
-}
-
-func (p *phpMyAdmin) ExecSQL(server, database, table, sql string) ([]byte, error) {
-	if p.Token == "" {
-		p.initCookie()
-	}
-
-	data := map[string]string{
-		// "table":             table,
-		"db":                database,
-		"server":            server,
-		"token":             p.Token,
-		"prev_sql_query":    "",
-		"sql_query":         sql,
-		"ajax_request":      "true",
-		"ajax_page_request": "true",
-	}
-	var bs []string
-	for k, v := range data {
-		bs = append(bs, k+"="+url.QueryEscape(v))
-	}
-	body := strings.NewReader(strings.Join(bs, "&"))
-	common.Debug("ExecSQL [%v]\n", strings.Join(bs, "&"))
-	header := map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
-
-	resp, err := p.Post(p.uri+"/import.php", "", nil, header, body)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var r phpMyAdminResp
-	if err = json.Unmarshal(b, &r); err != nil {
-		return nil, err
-	}
-	common.Debug("ExecSQL [%v]:[%v]:[%v]\n", r.Success, r.Error, r.Message)
-
-	return handlerPhpmyadminResp(r)
+	return refreshToken(p, resp)
 }
