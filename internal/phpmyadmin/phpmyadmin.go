@@ -39,6 +39,11 @@ type Servers struct {
 }
 
 func (s *Servers) Print() {
+	if len(s.S) == 0 {
+		common.Info("no servers found")
+		return
+	}
+
 	for _, v := range s.S {
 		common.Info(fmt.Sprintf("%s: %s\n", v.ID, v.Name))
 	}
@@ -67,6 +72,9 @@ func (p *phpMyAdmin) Login(username, password string) (err error) {
 			return err
 		}
 	}
+	if username == "" {
+		return nil
+	}
 
 	body := fmt.Sprintf("pma_username=%s&pma_password=%s&token=%s", username, password, utils.Escape(p.Token))
 	header := map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
@@ -88,11 +96,12 @@ func (p *phpMyAdmin) Login(username, password string) (err error) {
 	}
 
 	common.Info("login as [%s] success\n", username)
+
 	return nil
 }
 
-func (p *phpMyAdmin) GetServerList(url string) (*Servers, error) {
-	b, err := p.Get(url, "", nil)
+func (p *phpMyAdmin) GetServerList() (*Servers, error) {
+	b, err := p.Get(p.uri, "", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -123,12 +132,16 @@ func (p *phpMyAdmin) ExecSQL(server, database, table, sql string) ([]byte, error
 	data := map[string]string{
 		// "table":             table,
 		// "prev_sql_query":    "",
-		"db":                database,
-		"server":            server,
-		"token":             p.Token,
-		"sql_query":         sql,
-		"ajax_request":      "true",
-		"ajax_page_request": "true",
+		"db":                   database,
+		"server":               server,
+		"token":                p.Token,
+		"sql_query":            sql,
+		"ajax_request":         "true",
+		"ajax_page_request":    "true",
+		"display_options_form": "1",
+		"pftext":               "F",
+		"hide_transformation":  "on",
+		"session_max_rows":     "all",
 	}
 	var bs []string
 	for k, v := range data {
@@ -143,7 +156,7 @@ func (p *phpMyAdmin) ExecSQL(server, database, table, sql string) ([]byte, error
 		return nil, err
 	}
 
-	fmt.Printf("result %s\n", b)
+	common.Debug("result %s\n", b)
 
 	var r phpMyAdminResp
 	if err = json.Unmarshal(b, &r); err != nil {
