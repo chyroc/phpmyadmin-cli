@@ -91,6 +91,7 @@ CREATE TABLE IF NOT EXISTS `+ "`"+ `name`+ "`"+ ` (
 	buf.Reset()
 	show.TestSetOut(os.Stdout)
 	show.ParseFromHTML(string(b))
+	t.Error("asdf")
 // 	as.Equal(`+-------+---------+
 // |  id   |  name   |
 // |  id   |  名称   |
