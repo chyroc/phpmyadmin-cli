@@ -2,10 +2,10 @@
 
 
 [[projects]]
+  branch = "master"
   name = "github.com/PuerkitoBio/goquery"
   packages = ["."]
-  revision = "09540e565986583836b5fc792fe951ec5fd201dd"
-  version = "v1.3.0"
+  revision = "ea1bc64a63088ac2bbf1a2edcae38413794a7710"
 
 [[projects]]
   name = "github.com/andybalholm/cascadia"
@@ -18,6 +18,12 @@
   name = "github.com/c-bata/go-prompt"
   packages = ["."]
   revision = "f329ebd2409de559ba256325b8a18b13a145b5d5"
+
+[[projects]]
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
+  version = "v1.1.0"
 
 [[projects]]
   name = "github.com/fatih/color"
@@ -62,6 +68,18 @@
   revision = "b1f72af2d63057363398bec5873d16a98b453312"
 
 [[projects]]
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/stretchr/testify"
+  packages = ["assert"]
+  revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
+  version = "v1.2.1"
+
+[[projects]]
   branch = "master"
   name = "github.com/xwb1989/sqlparser"
   packages = [
@@ -91,6 +109,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9f3055c04ba202920d957c804347ea3e244fa23ed033f9a1a876a81fb3980d74"
+  inputs-digest = "3de924951363b583606ece0f8be54d504f37062149b6d78785a953d412c23dbd"
   solver-name = "gps-cdcl"
   solver-version = 1
