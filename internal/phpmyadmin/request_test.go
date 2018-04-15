@@ -10,6 +10,7 @@ import (
 	"github.com/Chyroc/phpmyadmin-cli/internal/common"
 	"github.com/Chyroc/phpmyadmin-cli/internal/requests"
 	"github.com/Chyroc/phpmyadmin-cli/internal/show"
+	"os"
 )
 
 func initClient() *phpMyAdmin {
@@ -89,6 +90,7 @@ CREATE TABLE IF NOT EXISTS `+ "`"+ `name`+ "`"+ ` (
 	as.NotNil(b)
 	buf.Reset()
 	show.ParseFromHTML(string(b))
+	show.TestSetOut(os.Stdout)
 	as.Equal(`+-------+---------+
 |  id   |  name   |
 |  id   |  名称   |
