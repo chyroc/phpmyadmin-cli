@@ -10,7 +10,6 @@ import (
 	"github.com/Chyroc/phpmyadmin-cli/internal/common"
 	"github.com/Chyroc/phpmyadmin-cli/internal/requests"
 	"github.com/Chyroc/phpmyadmin-cli/internal/show"
-	"os"
 )
 
 func initClient() *phpMyAdmin {
@@ -89,115 +88,112 @@ CREATE TABLE IF NOT EXISTS `+ "`"+ `name`+ "`"+ ` (
 	as.Nil(err)
 	as.NotNil(b)
 	buf.Reset()
-	show.TestSetOut(os.Stdout)
 	show.ParseFromHTML(string(b))
-	t.Error("asdf")
-// 	as.Equal(`+-------+---------+
-// |  id   |  name   |
-// |  id   |  名称   |
-// +-------+---------+
-// | id_0  | name_0  |
-// | id_1  | name_1  |
-// | id_2  | name_2  |
-// | id_3  | name_3  |
-// | id_4  | name_4  |
-// | id_5  | name_5  |
-// | id_6  | name_6  |
-// | id_7  | name_7  |
-// | id_8  | name_8  |
-// | id_9  | name_9  |
-// | id_10 | name_10 |
-// | id_11 | name_11 |
-// | id_12 | name_12 |
-// | id_13 | name_13 |
-// | id_14 | name_14 |
-// | id_15 | name_15 |
-// | id_16 | name_16 |
-// | id_17 | name_17 |
-// | id_18 | name_18 |
-// | id_19 | name_19 |
-// | id_20 | name_20 |
-// | id_21 | name_21 |
-// | id_22 | name_22 |
-// | id_23 | name_23 |
-// | id_24 | name_24 |
-// | id_25 | name_25 |
-// | id_26 | name_26 |
-// | id_27 | name_27 |
-// | id_28 | name_28 |
-// | id_29 | name_29 |
-// | id_30 | name_30 |
-// | id_31 | name_31 |
-// | id_32 | name_32 |
-// | id_33 | name_33 |
-// | id_34 | name_34 |
-// | id_35 | name_35 |
-// | id_36 | name_36 |
-// | id_37 | name_37 |
-// | id_38 | name_38 |
-// | id_39 | name_39 |
-// | id_40 | name_40 |
-// | id_41 | name_41 |
-// | id_42 | name_42 |
-// | id_43 | name_43 |
-// | id_44 | name_44 |
-// | id_45 | name_45 |
-// | id_46 | name_46 |
-// | id_47 | name_47 |
-// | id_48 | name_48 |
-// | id_49 | name_49 |
-// | id_50 | name_50 |
-// | id_51 | name_51 |
-// | id_52 | name_52 |
-// | id_53 | name_53 |
-// | id_54 | name_54 |
-// | id_55 | name_55 |
-// | id_56 | name_56 |
-// | id_57 | name_57 |
-// | id_58 | name_58 |
-// | id_59 | name_59 |
-// | id_60 | name_60 |
-// | id_61 | name_61 |
-// | id_62 | name_62 |
-// | id_63 | name_63 |
-// | id_64 | name_64 |
-// | id_65 | name_65 |
-// | id_66 | name_66 |
-// | id_67 | name_67 |
-// | id_68 | name_68 |
-// | id_69 | name_69 |
-// | id_70 | name_70 |
-// | id_71 | name_71 |
-// | id_72 | name_72 |
-// | id_73 | name_73 |
-// | id_74 | name_74 |
-// | id_75 | name_75 |
-// | id_76 | name_76 |
-// | id_77 | name_77 |
-// | id_78 | name_78 |
-// | id_79 | name_79 |
-// | id_80 | name_80 |
-// | id_81 | name_81 |
-// | id_82 | name_82 |
-// | id_83 | name_83 |
-// | id_84 | name_84 |
-// | id_85 | name_85 |
-// | id_86 | name_86 |
-// | id_87 | name_87 |
-// | id_88 | name_88 |
-// | id_89 | name_89 |
-// | id_90 | name_90 |
-// | id_91 | name_91 |
-// | id_92 | name_92 |
-// | id_93 | name_93 |
-// | id_94 | name_94 |
-// | id_95 | name_95 |
-// | id_96 | name_96 |
-// | id_97 | name_97 |
-// | id_98 | name_98 |
-// | id_99 | name_99 |
-// +-------+---------+
-// `, buf.String())
+	as.Equal(`+-------+---------+
+|  id   |  name   |
++-------+---------+
+| id_0  | name_0  |
+| id_1  | name_1  |
+| id_2  | name_2  |
+| id_3  | name_3  |
+| id_4  | name_4  |
+| id_5  | name_5  |
+| id_6  | name_6  |
+| id_7  | name_7  |
+| id_8  | name_8  |
+| id_9  | name_9  |
+| id_10 | name_10 |
+| id_11 | name_11 |
+| id_12 | name_12 |
+| id_13 | name_13 |
+| id_14 | name_14 |
+| id_15 | name_15 |
+| id_16 | name_16 |
+| id_17 | name_17 |
+| id_18 | name_18 |
+| id_19 | name_19 |
+| id_20 | name_20 |
+| id_21 | name_21 |
+| id_22 | name_22 |
+| id_23 | name_23 |
+| id_24 | name_24 |
+| id_25 | name_25 |
+| id_26 | name_26 |
+| id_27 | name_27 |
+| id_28 | name_28 |
+| id_29 | name_29 |
+| id_30 | name_30 |
+| id_31 | name_31 |
+| id_32 | name_32 |
+| id_33 | name_33 |
+| id_34 | name_34 |
+| id_35 | name_35 |
+| id_36 | name_36 |
+| id_37 | name_37 |
+| id_38 | name_38 |
+| id_39 | name_39 |
+| id_40 | name_40 |
+| id_41 | name_41 |
+| id_42 | name_42 |
+| id_43 | name_43 |
+| id_44 | name_44 |
+| id_45 | name_45 |
+| id_46 | name_46 |
+| id_47 | name_47 |
+| id_48 | name_48 |
+| id_49 | name_49 |
+| id_50 | name_50 |
+| id_51 | name_51 |
+| id_52 | name_52 |
+| id_53 | name_53 |
+| id_54 | name_54 |
+| id_55 | name_55 |
+| id_56 | name_56 |
+| id_57 | name_57 |
+| id_58 | name_58 |
+| id_59 | name_59 |
+| id_60 | name_60 |
+| id_61 | name_61 |
+| id_62 | name_62 |
+| id_63 | name_63 |
+| id_64 | name_64 |
+| id_65 | name_65 |
+| id_66 | name_66 |
+| id_67 | name_67 |
+| id_68 | name_68 |
+| id_69 | name_69 |
+| id_70 | name_70 |
+| id_71 | name_71 |
+| id_72 | name_72 |
+| id_73 | name_73 |
+| id_74 | name_74 |
+| id_75 | name_75 |
+| id_76 | name_76 |
+| id_77 | name_77 |
+| id_78 | name_78 |
+| id_79 | name_79 |
+| id_80 | name_80 |
+| id_81 | name_81 |
+| id_82 | name_82 |
+| id_83 | name_83 |
+| id_84 | name_84 |
+| id_85 | name_85 |
+| id_86 | name_86 |
+| id_87 | name_87 |
+| id_88 | name_88 |
+| id_89 | name_89 |
+| id_90 | name_90 |
+| id_91 | name_91 |
+| id_92 | name_92 |
+| id_93 | name_93 |
+| id_94 | name_94 |
+| id_95 | name_95 |
+| id_96 | name_96 |
+| id_97 | name_97 |
+| id_98 | name_98 |
+| id_99 | name_99 |
++-------+---------+
+`, buf.String())
 }
 
 func TestShowDatabases(t *testing.T) {
