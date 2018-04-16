@@ -3,14 +3,14 @@ package phpmyadmin
 import (
 	"bytes"
 	"fmt"
+	"os"
+	"os/exec"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/Chyroc/phpmyadmin-cli/internal/requests"
-	"os/exec"
-	"strings"
-	"os"
 )
 
 var information_schema_tables = `+---------------------------------------+
@@ -79,7 +79,7 @@ var information_schema_tables = `+---------------------------------------+
 | INNODB_SYS_TABLESTATS                 |
 +---------------------------------------+
 `
-var id_name=`+-------+---------+
+var id_name = `+-------+---------+
 |  id   |  name   |
 +-------+---------+
 | id_0  | name_0  |
@@ -184,22 +184,22 @@ var id_name=`+-------+---------+
 | id_99 | name_99 |
 +-------+---------+
 `
-var create_table=`
-CREATE TABLE IF NOT EXISTS `+ "`"+ `name`+ "`"+ ` (
-  `+ "`"+ `id`+ "`"+ ` varchar(32) NOT NULL COMMENT "id",
-  `+ "`"+ `name`+ "`"+ ` varchar(255) NOT NULL COMMENT "名称",
-  `+ "`"+ `created_at`+ "`"+ ` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT "创建时间",
-  `+ "`"+ `updated_at`+ "`"+ ` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT "更新时间"
+var create_table = `
+CREATE TABLE IF NOT EXISTS ` + "`" + `name` + "`" + ` (
+  ` + "`" + `id` + "`" + ` varchar(32) NOT NULL COMMENT "id",
+  ` + "`" + `name` + "`" + ` varchar(255) NOT NULL COMMENT "名称",
+  ` + "`" + `created_at` + "`" + ` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT "创建时间",
+  ` + "`" + `updated_at` + "`" + ` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT "更新时间"
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;`
 
-var show_create_table_name=`+-------+------------------------------------------------------------------------------------------------------------+
+var show_create_table_name = `+-------+------------------------------------------------------------------------------------------------------------+
 | Table |                                                Create Table                                                |
 +-------+------------------------------------------------------------------------------------------------------------+
-| name  | CREATE TABLE `+ "`"+ `name`+ "`"+ ` (                                                                                      |
-|       |   `+ "`"+ `id`+ "`"+ ` varchar(32) NOT NULL COMMENT 'id',                                                                  |
-|       |   `+ "`"+ `name`+ "`"+ ` varchar(255) NOT NULL COMMENT '名称',                                                             |
-|       |   `+ "`"+ `created_at`+ "`"+ ` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',                            |
-|       |   `+ "`"+ `updated_at`+ "`"+ ` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间' |
+| name  | CREATE TABLE ` + "`" + `name` + "`" + ` (                                                                                      |
+|       |   ` + "`" + `id` + "`" + ` varchar(32) NOT NULL COMMENT 'id',                                                                  |
+|       |   ` + "`" + `name` + "`" + ` varchar(255) NOT NULL COMMENT '名称',                                                             |
+|       |   ` + "`" + `created_at` + "`" + ` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',                            |
+|       |   ` + "`" + `updated_at` + "`" + ` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间' |
 |       | ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4                                                                    |
 +-------+------------------------------------------------------------------------------------------------------------+
 `
