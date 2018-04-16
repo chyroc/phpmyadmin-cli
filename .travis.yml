@@ -16,6 +16,7 @@ script:
 # lint
 #  test
   - make build
+  - echo $(pwd)
   - ./testdata/test.sh
 
 notifications:
