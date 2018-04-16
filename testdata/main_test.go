@@ -1,12 +1,12 @@
 package testdata
 
 import (
-	"os/exec"
 	"bytes"
-
-	"github.com/stretchr/testify/suite"
+	"os/exec"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/suite"
 )
 
 var helpInfo = `NAME:
@@ -34,6 +34,7 @@ GLOBAL OPTIONS:
 type Cli struct {
 	suite.Suite
 	t *testing.T
+	c *exec.Cmd
 
 	stdout  *bytes.Buffer
 	stderr  *bytes.Buffer
@@ -42,6 +43,7 @@ type Cli struct {
 
 	expectStdout interface{}
 	expectStderr interface{}
+	expectError  interface{}
 }
 
 func (t *Cli) addCommand(s ...string) {
@@ -52,46 +54,84 @@ func (t *Cli) SetupTest() {
 	t.stdout = new(bytes.Buffer)
 	t.stderr = new(bytes.Buffer)
 	t.command = nil
-	t.expectStderr = nil
 	t.expectStdout = nil
+	t.expectStderr = nil
+	t.expectError = nil
+
+}
+
+func (t *Cli) TestRunCommand() {
+	if len(t.command) > 0 {
+		var e = []interface{}{"run", strings.Join(t.command, " ")}
+		t.c = exec.Command(t.command[0], t.command[1:]...)
+		t.c.Stdout = t.stdout
+		t.c.Stderr = t.stderr
+		if t.expectError == nil {
+			t.Nil(t.c.Run(), e...)
+		} else {
+			err := t.c.Run()
+			t.NotNil(err, e...)
+			t.Equal(t.expectError.(string), err.Error(), e...)
+		}
+		if t.expectStdout != nil {
+			t.Equal(t.expectStdout.(string), t.stdout.String(), e...)
+		}
+		if t.expectStderr != nil {
+			t.Equal(t.expectStderr.(string), t.stderr.String(), e...)
+		}
+	}
+
+	t.SetupTest()
 }
 
 func (t *Cli) TearDownTest() {
-	if len(t.command) > 0 {
-		c := exec.Command(t.command[0], t.command[1:]...)
-		c.Stdout = t.stdout
-		c.Stderr = t.stderr
-		t.Nil(c.Run())
-		if t.expectStdout != nil {
-			t.Equal(t.expectStdout.(string), t.stdout.String())
-		}
-		if t.expectStderr != nil {
-			t.Equal(t.expectStderr.(string), t.stderr.String())
-		}
-	}
+	t.TestRunCommand()
 }
 
 func (t *Cli) TestFindBin() {
-	t.addCommand()
-
 	stdout := new(bytes.Buffer)
-	stderr := new(bytes.Buffer)
 	c := exec.Command("which", "phpmyadmin-cli")
 	c.Stdout = stdout
-	c.Stderr = stderr
 	t.Nil(c.Run())
 	t.bin = strings.Replace(stdout.String(), "\n", "", -1)
 	t.t.Logf("bin %s\n", t.bin)
 }
 
 func (t *Cli) TestHelp() {
-	t.addCommand(t.bin)
-	t.expectStdout = helpInfo
+	{
+		t.addCommand(t.bin)
+		t.expectStdout = helpInfo
+		t.TestRunCommand()
+	}
+
+	{
+		t.addCommand(t.bin, "-h")
+		t.expectStdout = helpInfo
+		t.TestRunCommand()
+	}
 }
 
-func (t *Cli) TestHelp2() {
-	t.addCommand(t.bin, "-h")
-	t.expectStdout = helpInfo
+func (t *Cli) TestLogin() {
+	{
+		t.addCommand(t.bin, "-port", "8000")
+		t.expectStdout = "need login\nneed login\n"
+		t.expectError = "exit status 1"
+		t.TestRunCommand()
+	}
+
+	{
+		t.addCommand(t.bin, "-port", "8000", "-username", "root", "-password", "error")
+		t.expectStdout = "login failed\nlogin failed\n"
+		t.expectError = "exit status 1"
+		t.TestRunCommand()
+	}
+
+	{
+		t.addCommand(t.bin, "-port", "8000", "-username", "root", "-password", "pass")
+		t.expectStdout = "login as [root] success\n\x1b]2;phpmyadmin cli\a"
+		t.expectError = "exit status 2"
+		t.TestRunCommand()
+	}
 }
 
 func TestCli(t *testing.T) {
