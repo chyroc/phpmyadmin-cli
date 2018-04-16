@@ -64,7 +64,7 @@ GLOBAL OPTIONS:
 }
 
 func addHistory(word string) {
-	f, err := os.OpenFile(historyPath, os.O_APPEND|os.O_RDWR, 0600)
+	f, err := os.OpenFile(historyPath, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0600)
 	if err != nil {
 		common.Error(err)
 		return
