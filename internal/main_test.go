@@ -2,6 +2,8 @@ package internal
 
 import (
 	"bytes"
+	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"testing"
@@ -89,11 +91,10 @@ func (t *Cli) TearDownTest() {
 }
 
 func (t *Cli) TestFindBin() {
-	stdout := new(bytes.Buffer)
-	c := exec.Command("which", "phpmyadmin-cli")
-	c.Stdout = stdout
-	t.Nil(c.Run())
-	t.bin = strings.Replace(stdout.String(), "\n", "", -1)
+	pwd, err := os.Getwd()
+	t.Nil(err)
+	t.bin = fmt.Sprintf("%s/../bin/phpmyadmin-cli", pwd)
+	fmt.Printf("", t.bin)
 	t.t.Logf("bin %s\n", t.bin)
 }
 
