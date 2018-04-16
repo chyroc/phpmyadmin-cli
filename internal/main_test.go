@@ -94,8 +94,7 @@ func (t *Cli) TestFindBin() {
 	pwd, err := os.Getwd()
 	t.Nil(err)
 	t.bin = fmt.Sprintf("%s/../bin/phpmyadmin-cli", pwd)
-	fmt.Printf("", t.bin)
-	t.t.Logf("bin %s\n", t.bin)
+	fmt.Printf("bin %s", t.bin)
 }
 
 func (t *Cli) TestHelp() {
