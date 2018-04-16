@@ -59,7 +59,42 @@ func (t *Cli) SetupTest() {
 	t.expectStdout = nil
 	t.expectStderr = nil
 	t.expectError = nil
+}
 
+func (t *Cli) SetupSuite() {
+	stdout := new(bytes.Buffer)
+	var bin string
+	var containers []string
+
+	{
+		c := exec.Command("which", "docker")
+		c.Stdout = stdout
+		t.Nil(c.Run())
+		bin = strings.Replace(stdout.String(), "\n", "", -1)
+	}
+
+	{
+		stdout.Reset()
+		c := exec.Command(bin, "ps", "-aq")
+		c.Stdout = stdout
+		t.Nil(c.Run())
+		containers = strings.Split(stdout.String(), "\n")
+	}
+
+	{
+		for _, v := range containers {
+			if v != "" {
+				stdout.Reset()
+				c := exec.Command(bin, "rm", "-f", v)
+				c.Stdout = stdout
+				t.Nil(c.Run())
+			}
+		}
+	}
+
+	pwd, err := os.Getwd()
+	t.Nil(err)
+	t.Nil(exec.Command(fmt.Sprintf("%s/../testdata/start_server_%d.sh", pwd, 1)).Run())
 }
 
 func (t *Cli) TestRunCommand() {
